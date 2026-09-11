@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quotation Generator — Gulf Borders For Contracting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ══════════════════ APP BAR ══════════════════ -->
+<header class="appbar no-print">
+  <div class="brandmark">
+    <span class="bm-badge">JB</span>
+    <span class="bm-text">
+      <b>Quotation Generator</b>
+      <i id="docStatus">New quotation</i>
+    </span>
+  </div>
+
+  <div class="bar-actions">
+    <button class="btn" data-act="new"      title="Start a blank quotation">＋ New</button>
+    <button class="btn" data-act="save"     title="Save to this device">💾 Save</button>
+    <button class="btn" data-act="history"  title="Saved quotations">🗂 History</button>
+    <button class="btn" data-act="duplicate" title="Clone as a new quotation">⧉ Duplicate</button>
+    <button class="btn" data-act="settings" title="Company profile">⚙ Company</button>
+    <button class="btn btn-gold"  data-act="pdf"   title="Export to PDF">⤓ PDF</button>
+    <button class="btn btn-navy"  data-act="print" title="Print">🖨 Print</button>
+  </div>
+</header>
+
+<!-- mobile tab switch -->
+<nav class="tabs no-print">
+  <button class="tab is-on" data-pane="editor">Edit</button>
+  <button class="tab"       data-pane="preview">Preview</button>
+</nav>
+
+<!-- ══════════════════ WORKSPACE ══════════════════ -->
+<main class="workspace">
+
+  <!-- ───────── EDITOR ───────── -->
+  <section class="editor no-print" id="editor">
+
+    <details class="card" open>
+      <summary>Quotation details <span class="hint">top table — 4 columns</span></summary>
+      <div class="card-body" id="infoEditor"></div>
+      <p class="note">Labels are editable too — tap a grey label box to relabel a cell for a different job type.</p>
+    </details>
+
+    <details class="card" open>
+      <summary>Line items <span class="hint" id="itemsCount"></span></summary>
+      <div class="card-body">
+        <div class="grid-tools">
+          <button class="chip chip-add" data-act="add-row">＋ Row</button>
+          <button class="chip chip-add" data-act="add-col">＋ Column</button>
+          <button class="chip" data-act="del-col">– Column</button>
+        </div>
+        <div id="itemsEditor" class="items-editor"></div>
+        <button class="wide-add" data-act="add-row">＋ Add line item</button>
+      </div>
+    </details>
+
+    <details class="card" open>
+      <summary>Totals <span class="hint">auto-calculated</span></summary>
+      <div class="card-body">
+        <div class="field-row">
+          <label class="field">
+            <span>VAT %</span>
+            <input type="number" step="0.01" id="vatInput" inputmode="decimal">
+          </label>
+          <div class="calc-readout">
+            <div><em>Sub Total</em><b id="roSub">0</b></div>
+            <div><em>VAT amount</em><b id="roVat">0</b></div>
+            <div class="grand"><em>Total Amount</em><b id="roTotal">0</b></div>
+          </div>
+        </div>
+        <p class="note">Sub Total and Total Amount are always derived from the line items — VAT % is the only input.</p>
+      </div>
+    </details>
+
+    <div class="editor-foot">
+      <button class="btn btn-navy block" data-act="save">💾 Save quotation</button>
+    </div>
+  </section>
+
+  <!-- ───────── PREVIEW ───────── -->
+  <section class="preview" id="preview">
+    <div class="zoombar no-print">
+      <button class="zbtn" data-zoom="out">−</button>
+      <span id="zoomLabel">Fit</span>
+      <button class="zbtn" data-zoom="in">+</button>
+      <button class="zbtn" data-zoom="fit">Fit</button>
+    </div>
+    <div class="page-holder" id="pageHolder">
+      <!-- the printed document -->
+      <div class="page" id="page"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════ COMPANY PROFILE PANEL ══════════════════ -->
+<div class="overlay no-print" id="settingsPanel" hidden>
+  <div class="sheet">
+    <header class="sheet-head">
+      <h2>Company profile</h2>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="sheet-body">
+      <p class="note">Saved once and reused on every quotation. Company name, logo and stamp are locked on the document itself — only editable here.</p>
+
+      <div class="uploads">
+        <label class="upload">
+          <span>Logo</span>
+          <div class="up-prev" id="logoPrev"></div>
+          <input type="file" accept="image/*" id="logoFile" hidden>
+          <span class="up-btns">
+            <button class="chip" data-pick="logoFile">Upload</button>
+            <button class="chip" data-clear="logo">Reset</button>
+          </span>
+        </label>
+        <label class="upload">
+          <span>Stamp / seal</span>
+          <div class="up-prev round" id="stampPrev"></div>
+          <input type="file" accept="image/*" id="stampFile" hidden>
+          <span class="up-btns">
+            <button class="chip" data-pick="stampFile">Upload</button>
+            <button class="chip" data-clear="stamp">Reset</button>
+          </span>
+        </label>
+      </div>
+
+      <div class="field-grid">
+        <label class="field"><span>Company name (Arabic)</span><input id="p_nameAr" dir="rtl"></label>
+        <label class="field"><span>Company name (English)</span><input id="p_nameEn"></label>
+        <label class="field"><span>Default contractor telephone</span><input id="p_tel" inputmode="tel"></label>
+        <label class="field"><span>Footer phone 1</span><input id="p_phone1" inputmode="tel"></label>
+        <label class="field"><span>Footer phone 2</span><input id="p_phone2" inputmode="tel"></label>
+        <label class="field"><span>Email</span><input id="p_email" inputmode="email"></label>
+        <label class="field wide"><span>Address</span><input id="p_address" dir="rtl"></label>
+        <label class="field"><span>Brand navy</span><input type="color" id="p_navy"></label>
+        <label class="field"><span>Brand gold</span><input type="color" id="p_gold"></label>
+      </div>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn" data-close>Close</button>
+      <button class="btn btn-navy" data-act="save-profile">Save profile</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════ HISTORY PANEL ══════════════════ -->
+<div class="overlay no-print" id="historyPanel" hidden>
+  <div class="sheet">
+    <header class="sheet-head">
+      <h2>Saved quotations</h2>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="sheet-body">
+      <input class="search" id="histSearch" placeholder="Search by Ref. No., client or date…">
+      <div id="histList" class="hist-list"></div>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn" data-close>Close</button>
+    </footer>
+  </div>
+</div>
+
+<div class="toast no-print" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
