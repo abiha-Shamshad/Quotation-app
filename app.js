@@ -318,11 +318,17 @@ function renderDoc() {
     '</div>';
 
   fitPage();
-  /* editor read-outs */
+  updateReadouts();
+}
+
+/* the running totals under the form — cheap, and needed even while the
+   document itself is not on screen */
+function updateReadouts() {
+  const q = state.quote, t = totals();
   $('#roSub').textContent   = fmt(t.sub, true);
   $('#roVat').textContent   = fmt(t.vat, true);
   $('#roTotal').textContent = fmt(t.total, true);
-  $('#itemsCount').textContent = q.rows.length + ' rows · ' + q.cols.length + ' columns';
+  $('#itemsCount').textContent = q.rows.length + (q.rows.length === 1 ? ' item' : ' items');
 }
 
 /* shrink the line-item type step by step so a long quotation still fits one A4 page */
@@ -340,75 +346,109 @@ function fitPage() {
 /* ═══════════════════════════════════════════════════════════
    RENDER — the editor
    ═══════════════════════════════════════════════════════════ */
+/* The top table is 4 rows × 2 value+label pairs. The form shows one plain
+   field per pair, captioned with that pair's own label — rename a label
+   under Advanced and the caption here follows. */
+function infoPairs() {
+  const out = [];
+  state.quote.info.forEach((r, ri) => {
+    [[0, 1], [2, 3]].forEach(p => {
+      const v = r[p[0]], l = r[p[1]];
+      const cap = ((l.en || l.ar || '') + '').trim();
+      if (!cap && !String(v.v || '').trim()) return;   /* unused cell stays hidden */
+      out.push({ ri: ri, vi: p[0], li: p[1], cap: cap || 'Extra', cell: v });
+    });
+  });
+  /* one-line fields pair up two-per-row first, the two long name cells after */
+  return out.filter(f => f.cell.size !== 'sm').concat(out.filter(f => f.cell.size === 'sm'));
+}
+
 function renderInfoEditor() {
-  const q = state.quote;
-  const names = ['Row 1', 'Row 2', 'Row 3', 'Row 4'];
-  $('#infoEditor').innerHTML = '<div class="info-rows">' + q.info.map((r, ri) => {
-    const pair = (vi, li) => {
-      const v = r[vi], l = r[li];
-      return '<div class="ir-pair">' +
-        '<textarea class="mini val" rows="2" data-info="' + ri + ',' + vi + ',v"' +
-          (isAr(v.v) ? ' dir="rtl"' : '') + ' placeholder="value">' + esc(v.v) + '</textarea>' +
-        '<div class="lbl-2">' +
-          '<input class="mini" dir="rtl" data-info="' + ri + ',' + li + ',ar" value="' + esc(l.ar) + '" placeholder="label عربي">' +
-          '<input class="mini" data-info="' + ri + ',' + li + ',en" value="' + esc(l.en) + '" placeholder="label EN">' +
-        '</div></div>';
-    };
-    return '<div class="info-row"><div class="ir-head">' + names[ri] + '</div>' +
-      '<div class="ir-body">' + pair(0, 1) + pair(2, 3) + '</div></div>';
+  $('#infoEditor').innerHTML = '<div class="field-grid">' + infoPairs().map(f => {
+    const multi = f.cell.size === 'sm';           /* the two name cells */
+    const rtl = isAr(f.cell.v) ? ' dir="rtl"' : '';
+    const at  = ' data-info="' + f.ri + ',' + f.vi + ',v"';
+    return '<label class="field' + (multi ? ' wide' : '') + '"><span>' + esc(f.cap) + '</span>' +
+      (multi
+        ? '<textarea rows="2"' + at + rtl + '>' + esc(f.cell.v) + '</textarea>'
+        : '<input' + at + rtl + ' value="' + esc(f.cell.v) + '">') +
+      '</label>';
   }).join('') + '</div>';
+}
+
+/* keep a caption in step while its label is being retyped under Advanced */
+function syncCaption(ri, li) {
+  const box = $('[data-info="' + ri + ',' + (li - 1) + ',v"]', $('#infoEditor'));
+  const lab = box && box.closest('.field');
+  if (!lab) return;
+  const l = state.quote.info[ri][li];
+  lab.querySelector('span').textContent = ((l.en || l.ar || '') + '').trim() || 'Extra';
 }
 
 function renderItemsEditor() {
   const q = state.quote;
   const extra = q.cols.filter(c => !c.fixed && c.key !== 'desc');
 
-  const colsBlock = '<details class="card" style="margin-bottom:12px">' +
-    '<summary>Column headings <span class="hint">' + q.cols.length + ' columns</span></summary>' +
-    '<div class="card-body"><div class="info-rows">' +
-      q.cols.map((c, i) =>
-        '<div class="info-row"><div class="ir-head">' + esc(c.en || c.key) +
-          (c.kind === 'total' ? ' · auto' : '') + '</div>' +
-          '<div class="ir-body" style="grid-template-columns:1fr 1fr">' +
-            '<input class="mini" dir="rtl" data-col="' + i + ',ar" value="' + esc(c.ar) + '" placeholder="عربي">' +
-            '<input class="mini" data-col="' + i + ',en" value="' + esc(c.en) + '" placeholder="English">' +
-          '</div></div>').join('') +
-    '</div></div></details>';
-
-  const cards = q.rows.map((r, ri) => {
+  $('#itemsEditor').innerHTML = q.rows.map((r, ri) => {
     const extraInputs = extra.map(c =>
       '<label class="field"><span>' + esc(c.en || c.ar) + '</span>' +
         '<input class="cellbox" data-cell="' + ri + ',' + c.key + '" value="' + esc(r[c.key] || '') + '"></label>').join('');
     return '<div class="item-card">' +
       '<div class="ic-head">' +
-        '<input class="n" data-cell="' + ri + ',no" value="' + esc(r.no || '') + '" aria-label="No.">' +
-        '<span class="ttl">Item ' + (ri + 1) + '</span>' +
-        '<button class="del" data-delrow="' + ri + '" title="Delete this line">🗑</button>' +
+        '<input class="n" data-cell="' + ri + ',no" value="' + esc(r.no || '') + '" aria-label="Item number">' +
+        '<textarea class="desc" rows="2" data-cell="' + ri + ',desc"' +
+          (isAr(r.desc) ? ' dir="rtl"' : '') + ' placeholder="Description">' + esc(r.desc || '') + '</textarea>' +
+        '<button class="del" data-delrow="' + ri + '" title="Delete this item" aria-label="Delete item">✕</button>' +
       '</div>' +
-      '<div class="ic-body">' +
-        '<label class="field"><span>Description / Detail</span>' +
-          '<textarea class="cellbox" rows="2" data-cell="' + ri + ',desc"' +
-            (isAr(r.desc) ? ' dir="rtl"' : '') + '>' + esc(r.desc || '') + '</textarea></label>' +
-        (extraInputs ? '<div class="ic-extra">' + extraInputs + '</div>' : '') +
-        '<div class="ic-nums">' +
-          '<label class="field"><span>Qty</span>' +
-            '<input class="cellbox" inputmode="decimal" data-cell="' + ri + ',qty" value="' + esc(r.qty || '') + '"></label>' +
-          '<label class="field"><span>Unit Price</span>' +
-            '<input class="cellbox" inputmode="decimal" data-cell="' + ri + ',unit" value="' + esc(r.unit || '') + '"></label>' +
-          '<label class="field ic-total' + (r._over ? ' is-over' : '') + '"><span>Total' + (r._over ? ' (manual)' : '') + '</span>' +
-            '<input class="cellbox" inputmode="decimal" data-total="' + ri + '" value="' + fmt(rowTotal(r), false) + '">' +
-            (r._over ? '<button class="reset-total" data-resettotal="' + ri + '" title="Back to Qty × Unit Price">↺ auto</button>' : '') +
-          '</label>' +
-        '</div>' +
-      '</div></div>';
+      (extraInputs ? '<div class="ic-extra">' + extraInputs + '</div>' : '') +
+      '<div class="ic-nums">' +
+        '<label class="field"><span>Qty</span>' +
+          '<input class="cellbox" inputmode="decimal" data-cell="' + ri + ',qty" value="' + esc(r.qty || '') + '"></label>' +
+        '<label class="field"><span>Unit price</span>' +
+          '<input class="cellbox" inputmode="decimal" data-cell="' + ri + ',unit" value="' + esc(r.unit || '') + '"></label>' +
+        '<label class="field ic-total' + (r._over ? ' is-over' : '') + '"><span>Total' + (r._over ? '' : ' (auto)') + '</span>' +
+          '<input class="cellbox" inputmode="decimal" data-total="' + ri + '" value="' + fmt(rowTotal(r), false) + '">' +
+          (r._over ? '<button class="reset-total" data-resettotal="' + ri + '" title="Back to Qty × Unit price">auto</button>' : '') +
+        '</label>' +
+      '</div>' +
+    '</div>';
   }).join('');
+}
 
-  $('#itemsEditor').innerHTML = colsBlock + cards;
+/* everything most quotations never need, folded away in one place */
+function renderAdvanced() {
+  const q = state.quote;
+
+  const labels = '<h3 class="adv-h">Table labels</h3>' +
+    '<p class="note">Relabel a cell in the top table for a different kind of job.</p>' +
+    '<div class="adv-rows">' + q.info.map((r, ri) =>
+      [[0, 1], [2, 3]].map(p => {
+        const l = r[p[1]];
+        const val = String(r[p[0]].v || '').split('\n')[0].trim();
+        return '<div class="adv-row"><span class="adv-key">' + esc(val || '—') + '</span>' +
+          '<input class="mini" dir="rtl" data-info="' + ri + ',' + p[1] + ',ar" value="' + esc(l.ar) + '" placeholder="عربي">' +
+          '<input class="mini" data-info="' + ri + ',' + p[1] + ',en" value="' + esc(l.en) + '" placeholder="English">' +
+        '</div>';
+      }).join('')).join('') + '</div>';
+
+  const cols = '<h3 class="adv-h">Item columns</h3>' +
+    '<div class="adv-rows">' + q.cols.map((c, i) =>
+      '<div class="adv-row"><span class="adv-key">' + esc(c.en || c.key) + '</span>' +
+        '<input class="mini" dir="rtl" data-col="' + i + ',ar" value="' + esc(c.ar) + '" placeholder="عربي">' +
+        '<input class="mini" data-col="' + i + ',en" value="' + esc(c.en) + '" placeholder="English">' +
+      '</div>').join('') + '</div>' +
+    '<div class="grid-tools">' +
+      '<button class="chip" data-act="add-col">＋ Column</button>' +
+      '<button class="chip" data-act="del-col">– Column</button>' +
+    '</div>';
+
+  $('#advEditor').innerHTML = labels + cols;
 }
 
 function renderEditor() {
   renderInfoEditor();
   renderItemsEditor();
+  renderAdvanced();
   $('#vatInput').value = state.quote.vat;
 }
 
@@ -418,7 +458,7 @@ function renderEditor() {
 let saveT;
 function touched(structural) {
   state.quote.updated = Date.now();
-  renderDoc();
+  if (docShown()) renderDoc(); else updateReadouts();
   clearTimeout(saveT);
   saveT = setTimeout(() => save(K_CURRENT, state.quote), 400);
   if (structural) renderEditor();
@@ -430,6 +470,7 @@ $('#editor').addEventListener('input', e => {
   if (el.dataset.info) {
     const [ri, ci, field] = el.dataset.info.split(',');
     q.info[+ri][+ci][field] = el.value;
+    if (field !== 'v') syncCaption(+ri, +ci);
     return touched();
   }
   if (el.dataset.col) {
@@ -647,7 +688,29 @@ function loadQuote(q) {
   state.savedId = q.id;
   save(K_CURRENT, q);
   $('#docStatus').textContent = quoteRef(q);
-  renderEditor(); renderDoc();
+  renderEditor();
+  if (docShown()) renderDoc(); else { showForm(); updateReadouts(); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TWO SCREENS — the form, then the finished quotation
+   The document is drawn only when it is asked for: Save, PDF / Print.
+   ═══════════════════════════════════════════════════════════ */
+function docShown() { return document.body.classList.contains('show-doc'); }
+
+function showDoc(then) {
+  document.body.classList.add('show-doc');
+  window.scrollTo(0, 0);
+  /* measure only now that the page has a size — a hidden one measures as zero */
+  requestAnimationFrame(() => {
+    renderDoc();
+    applyZoom(fitZoom(), true);
+    if (then) setTimeout(then, 150);
+  });
+}
+function showForm() {
+  document.body.classList.remove('show-doc');
+  window.scrollTo(0, 0);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -662,7 +725,8 @@ document.addEventListener('click', e => {
     $('#docStatus').textContent = 'New quotation';
     toast('Blank quotation ready');
   }
-  else if (act === 'save')      saveQuote();
+  else if (act === 'save')      { saveQuote(); showDoc(); }
+  else if (act === 'edit')      showForm();
   else if (act === 'history')   openHistory();
   else if (act === 'settings')  openSettings();
   else if (act === 'duplicate') {
@@ -671,20 +735,19 @@ document.addEventListener('click', e => {
     loadQuote(c);
     toast('Duplicated — edit and save as a new quotation');
   }
-  else if (act === 'print') doPrint();
-  else if (act === 'pdf') { toast('In the print dialog choose "Save as PDF"'); setTimeout(doPrint, 500); }
+  else if (act === 'print' || act === 'pdf') doPrint();
 });
 /* editor's own save button */
 $('#editor').addEventListener('click', e => {
-  if (e.target.closest('[data-act="save"]')) saveQuote();
+  if (e.target.closest('[data-act="save"]')) { saveQuote(); showDoc(); }
 });
 
 function doPrint() {
-  fitPage();
-  window.print();
+  toast('Choose "Save as PDF" in the dialog for a PDF, or a printer to print');
+  showDoc(() => window.print());
 }
 
-/* zoom */
+/* zoom — one toggle: fit to the pane, or 100% */
 let zoom = 1, autoFit = true;
 function fitZoom() {
   const holder = $('#pageHolder');
@@ -693,42 +756,41 @@ function fitZoom() {
 }
 function applyZoom(z, auto) {
   zoom = z; autoFit = !!auto;
-  const page = $('#page');
-  page.style.transform = 'scale(' + z + ')';
+  $('#page').style.transform = 'scale(' + z + ')';
   $('#pageHolder').style.height = (1123 * z) + 'px';
-  $('#zoomLabel').textContent = auto ? 'Fit' : Math.round(z * 100) + '%';
+  $('#zoomToggle').textContent = auto ? 'Zoom 100%' : 'Fit to width';
 }
-$('.zoombar').addEventListener('click', e => {
-  const b = e.target.closest('[data-zoom]');
-  if (!b) return;
-  const k = b.dataset.zoom;
-  if (k === 'fit') applyZoom(fitZoom(), true);
-  else if (k === 'in')  applyZoom(Math.min(2, zoom + 0.1), false);
-  else                  applyZoom(Math.max(0.25, zoom - 0.1), false);
-});
-window.addEventListener('resize', () => { if (autoFit) applyZoom(fitZoom(), true); });
+$('#zoomToggle').addEventListener('click', () => applyZoom(autoFit ? 1 : fitZoom(), !autoFit));
+window.addEventListener('resize', () => { if (autoFit && docShown()) applyZoom(fitZoom(), true); });
 
-/* mobile tabs */
-$$('.tab').forEach(t => t.addEventListener('click', () => {
-  $$('.tab').forEach(x => x.classList.toggle('is-on', x === t));
-  document.body.classList.toggle('show-preview', t.dataset.pane === 'preview');
-  if (t.dataset.pane === 'preview') requestAnimationFrame(() => applyZoom(fitZoom(), true));
-}));
+/* the ⋯ menu closes when you pick something or tap away */
+document.addEventListener('click', e => {
+  const inMenu = e.target.closest('.menu');
+  $$('details.menu[open]').forEach(m => {
+    if (m !== inMenu || e.target.closest('.menu-list')) m.open = false;
+  });
+});
 
 /* close overlays on backdrop tap */
 $$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.hidden = true; }));
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') $$('.overlay').forEach(o => o.hidden = true);
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveQuote(); }
+  if (e.key === 'Escape') {
+    const wasOpen = $$('.overlay:not([hidden])').length || $$('details.menu[open]').length;
+    $$('.overlay').forEach(o => o.hidden = true);
+    $$('details.menu[open]').forEach(m => { m.open = false; });
+    if (!wasOpen && docShown()) showForm();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveQuote(); showDoc(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); doPrint(); }
 });
 
 /* ───────────── boot ───────────── */
 renderEditor();
-renderDoc();
-applyZoom(fitZoom(), true);
+updateReadouts();
 $('#docStatus').textContent = quoteRef(state.quote);
 /* webfonts change metrics — re-measure once they land */
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitPage(); applyZoom(autoFit ? fitZoom() : zoom, autoFit); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+  if (docShown()) { fitPage(); applyZoom(autoFit ? fitZoom() : zoom, autoFit); }
+});
 
 })();

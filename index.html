@@ -16,27 +16,28 @@
   <div class="brandmark">
     <span class="bm-badge">JB</span>
     <span class="bm-text">
-      <b>Quotation Generator</b>
+      <b>Quotation</b>
       <i id="docStatus">New quotation</i>
     </span>
   </div>
 
   <div class="bar-actions">
-    <button class="btn" data-act="new"      title="Start a blank quotation">＋ New</button>
-    <button class="btn" data-act="save"     title="Save to this device">💾 Save</button>
-    <button class="btn" data-act="history"  title="Saved quotations">🗂 History</button>
-    <button class="btn" data-act="duplicate" title="Clone as a new quotation">⧉ Duplicate</button>
-    <button class="btn" data-act="settings" title="Company profile">⚙ Company</button>
-    <button class="btn btn-gold"  data-act="pdf"   title="Export to PDF">⤓ PDF</button>
-    <button class="btn btn-navy"  data-act="print" title="Print">🖨 Print</button>
+    <button class="btn edit-only" data-act="history" title="Saved quotations">Saved</button>
+    <button class="btn edit-only" data-act="save" title="Save and see the quotation (Ctrl+S)">Save</button>
+    <button class="btn doc-only" data-act="edit" title="Back to the form (Esc)">← Edit</button>
+    <button class="btn btn-gold" data-act="pdf" title="See it, then save as PDF or print (Ctrl+P)">PDF / Print</button>
+
+    <details class="menu">
+      <summary title="More">⋯</summary>
+      <div class="menu-list">
+        <button class="only-mobile" data-act="history">Saved quotations</button>
+        <button data-act="new">New quotation</button>
+        <button data-act="duplicate">Duplicate this one</button>
+        <button data-act="settings">Company profile</button>
+      </div>
+    </details>
   </div>
 </header>
-
-<!-- mobile tab switch -->
-<nav class="tabs no-print">
-  <button class="tab is-on" data-pane="editor">Edit</button>
-  <button class="tab"       data-pane="preview">Preview</button>
-</nav>
 
 <!-- ══════════════════ WORKSPACE ══════════════════ -->
 <main class="workspace">
@@ -44,30 +45,24 @@
   <!-- ───────── EDITOR ───────── -->
   <section class="editor no-print" id="editor">
 
-    <details class="card" open>
-      <summary>Quotation details <span class="hint">top table — 4 columns</span></summary>
+    <section class="card">
+      <h2 class="card-title">Details</h2>
       <div class="card-body" id="infoEditor"></div>
-      <p class="note">Labels are editable too — tap a grey label box to relabel a cell for a different job type.</p>
-    </details>
+    </section>
 
-    <details class="card" open>
-      <summary>Line items <span class="hint" id="itemsCount"></span></summary>
+    <section class="card">
+      <h2 class="card-title">Items <span class="hint" id="itemsCount"></span></h2>
       <div class="card-body">
-        <div class="grid-tools">
-          <button class="chip chip-add" data-act="add-row">＋ Row</button>
-          <button class="chip chip-add" data-act="add-col">＋ Column</button>
-          <button class="chip" data-act="del-col">– Column</button>
-        </div>
         <div id="itemsEditor" class="items-editor"></div>
-        <button class="wide-add" data-act="add-row">＋ Add line item</button>
+        <button class="wide-add" data-act="add-row">＋ Add item</button>
       </div>
-    </details>
+    </section>
 
-    <details class="card" open>
-      <summary>Totals <span class="hint">auto-calculated</span></summary>
+    <section class="card">
+      <h2 class="card-title">Totals</h2>
       <div class="card-body">
-        <div class="field-row">
-          <label class="field">
+        <div class="totals-box">
+          <label class="field vat">
             <span>VAT %</span>
             <input type="number" step="0.01" id="vatInput" inputmode="decimal">
           </label>
@@ -77,22 +72,24 @@
             <div class="grand"><em>Total Amount</em><b id="roTotal">0</b></div>
           </div>
         </div>
-        <p class="note">Sub Total and Total Amount are always derived from the line items — VAT % is the only input.</p>
       </div>
+    </section>
+
+    <details class="card adv">
+      <summary>Advanced <span class="hint">labels &amp; columns</span></summary>
+      <div class="card-body" id="advEditor"></div>
     </details>
 
     <div class="editor-foot">
-      <button class="btn btn-navy block" data-act="save">💾 Save quotation</button>
+      <button class="btn btn-navy block" data-act="save">Save &amp; view quotation</button>
     </div>
   </section>
 
   <!-- ───────── PREVIEW ───────── -->
   <section class="preview" id="preview">
     <div class="zoombar no-print">
-      <button class="zbtn" data-zoom="out">−</button>
-      <span id="zoomLabel">Fit</span>
-      <button class="zbtn" data-zoom="in">+</button>
-      <button class="zbtn" data-zoom="fit">Fit</button>
+      <span class="zhint">This is exactly what prints.</span>
+      <button class="zbtn" id="zoomToggle">Zoom 100%</button>
     </div>
     <div class="page-holder" id="pageHolder">
       <!-- the printed document -->
@@ -110,7 +107,7 @@
       <button class="x" data-close>✕</button>
     </header>
     <div class="sheet-body">
-      <p class="note">Saved once and reused on every quotation. Company name, logo and stamp are locked on the document itself — only editable here.</p>
+      <p class="note">Saved once and reused on every quotation.</p>
 
       <div class="uploads">
         <label class="upload">

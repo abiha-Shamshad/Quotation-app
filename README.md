@@ -17,45 +17,53 @@ to system fonts and still prints correctly.)
 
 | File | Purpose |
 |---|---|
-| `index.html` | App shell — toolbar, editor form, preview pane, panels |
+| `index.html` | App shell — toolbar, the form, the document screen, panels |
 | `app.css` | App chrome **and** the document layout (the `@media print` block at the bottom is what makes print == screen) |
 | `app.js` | State, live calculations, rendering, save/history, print |
 
 ## Using it
 
-**Toolbar**
+**One screen at a time.** You fill in the form; the quotation itself is not on screen while
+you work. It appears once you have added everything and press **Save** or **PDF / Print**, and
+`← Edit` (or `Esc`) takes you back to the form.
 
-- **New** — blank quotation (4×3 header grid + Location row, 7 empty line items)
-- **Save** — stores the quotation's *data* (not a picture) so it can be reopened and edited
-- **History** — every saved quotation, searchable by Ref. No., client or date; Open / Copy / Delete
-- **Duplicate** — clone the open quotation as a new one (handy for repeat villa jobs)
-- **Company** — the one-time company profile
-- **PDF** — opens the print dialog; choose destination **Save as PDF**
-- **Print** — same layout straight to the printer
+**Toolbar** — three buttons and a `⋯` menu, nothing else:
 
-Keyboard: `Ctrl+S` save, `Ctrl+P` print.
+- **Saved** — every saved quotation, searchable by Ref. No., client or date; Open / Copy / Delete
+- **Save** — stores the quotation's *data* (not a picture) and shows you the finished document
+- **PDF / Print** — shows the document and opens the print dialog; pick *Save as PDF* for a file,
+  or a printer to print
+- **⋯** — New quotation · Duplicate this one · Company profile (and *Saved* on a phone)
 
-**Quotation details (top table)** — 4 columns. Both the values *and* the Arabic/English labels
-are editable, so a cell can be relabelled for a different kind of job. Contractor name and
-telephone are pre-filled from the company profile but can be changed per quotation.
+Keyboard: `Ctrl+S` save, `Ctrl+P` print, `Esc` back to the form.
 
-**Line items** — starts at 4 columns × 7 rows.
+**Details** — one plain field per cell of the top table: Ref. No., Date, Telephone,
+Client Mobile, Location, Contractor and Client. Each caption is that cell's own label, so
+relabelling a cell under *Advanced* renames the field here too. Contractor name and telephone
+are pre-filled from the company profile but can be changed per quotation.
 
-- `+ Row` / the trash icon on each card grows or shrinks the list
-- `+ Column` / `– Column` adds or removes extra spec columns; they slot in before Total Price
-- `Column headings` sub-panel renames any column in both languages
+**Items** — one card per line: number, description, Qty, Unit price, Total.
+
+- `＋ Add item` adds a line, the `✕` on a card removes it
 - **No.** auto-increments but can be typed over (the sample has two rows numbered 10, like the original)
-- **Total Price** is Qty × Unit Price automatically. Type a different number and that row switches
-  to manual (it turns gold, with a `↺ auto` button to switch back) — for flat-rate lines such as
+- **Total** is Qty × Unit price automatically. Type a different number and that row switches
+  to manual (it turns gold, with an `auto` button to switch back) — for flat-rate lines such as
   item 7 in the sample, where 2 × 580 is billed as 580.
 
 **Totals** — Sub Total and Total Amount are always derived and cannot be typed into.
 VAT % is the only input (default 15).
 
-**Company profile** — logo, stamp/seal, company name (AR + EN), default contractor telephone,
-the two footer phones, email, address and the two brand colours. Company name, logo and stamp are
-deliberately *not* editable per quotation — only here. Upload images under ~1.5 MB; until you
-upload real artwork, a built-in JB monogram and round seal are drawn in.
+**Advanced** — folded away at the bottom of the editor, because most quotations never need it:
+rename the Arabic/English labels of any cell in the top table, rename the item-column headings,
+and add or remove extra spec columns (they slot in before Total Price).
+
+**Company profile** (in the `⋯` menu) — logo, stamp/seal, company name (AR + EN), default
+contractor telephone, the two footer phones, email, address and the two brand colours. Company
+name, logo and stamp are deliberately *not* editable per quotation — only here. Upload images
+under ~1.5 MB; until you upload real artwork, a built-in JB monogram and round seal are drawn in.
+
+**The document screen** — the A4 sheet exactly as it prints; the button above it toggles
+100% for a closer look. Nothing is editable here — press `← Edit` to change something.
 
 ## Fitting one page
 
