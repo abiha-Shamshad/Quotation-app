@@ -19,7 +19,7 @@ to system fonts and still prints correctly.)
 |---|---|
 | `index.html` | App shell — toolbar, the form, the document screen, panels |
 | `app.css` | App chrome **and** the document layout (the `@media print` block at the bottom is what makes print == screen) |
-| `app.js` | State, live calculations, rendering, save/history, print |
+| `app.js` | State, live calculations, rendering, save/history, item list, print |
 
 ## Using it
 
@@ -33,7 +33,7 @@ you work. It appears once you have added everything and press **Save** or **PDF 
 - **Save** — stores the quotation's *data* (not a picture) and shows you the finished document
 - **PDF / Print** — shows the document and opens the print dialog; pick *Save as PDF* for a file,
   or a printer to print
-- **⋯** — New quotation · Duplicate this one · Company profile (and *Saved* on a phone)
+- **⋯** — New quotation · Duplicate this one · My item list · Company profile (and *Saved* on a phone)
 
 Keyboard: `Ctrl+S` save, `Ctrl+P` print, `Esc` back to the form.
 
@@ -42,13 +42,23 @@ Client Mobile, Location, Contractor and Client. Each caption is that cell's own 
 relabelling a cell under *Advanced* renames the field here too. Contractor name and telephone
 are pre-filled from the company profile but can be changed per quotation.
 
-**Items** — one card per line: number, description, Qty, Unit price, Total.
+**Items** — one card per line: **Pick an item ▾**, number, description, Qty, Unit price, Total.
 
+- **Pick an item** drops down your saved item list and fills the line in — description, unit
+  price and a quantity of 1 — so a normal line takes one tap and no typing. Edit the
+  description afterwards for the villa number or anything else specific to the job.
 - `＋ Add item` adds a line, the `✕` on a card removes it
 - **No.** auto-increments but can be typed over (the sample has two rows numbered 10, like the original)
 - **Total** is Qty × Unit price automatically. Type a different number and that row switches
   to manual (it turns gold, with an `auto` button to switch back) — for flat-rate lines such as
   item 7 in the sample, where 2 × 580 is billed as 580.
+
+**My item list** (in the `⋯` menu, or *Edit my item list…* at the bottom of any dropdown) —
+the jobs behind the **Pick an item** menu, each with its usual price. It starts with the
+company's common AC and plumbing jobs, and **every line you type on a quotation is added to it
+when you save**, newest first, so the list teaches itself as you work. Edit the wording or the
+price in place, `✕` removes an entry, *Restore the starter list* puts the built-in ones back.
+The list is capped at the 80 most recent items.
 
 **Totals** — Sub Total and Total Amount are always derived and cannot be typed into.
 VAT % is the only input (default 15).

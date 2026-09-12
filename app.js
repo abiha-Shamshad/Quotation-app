@@ -87,6 +87,7 @@ function frameSVG(navy, gold) {
 const K_PROFILE = 'gbfc.profile.v1';
 const K_QUOTES  = 'gbfc.quotes.v1';
 const K_CURRENT = 'gbfc.current.v1';
+const K_CATALOG = 'gbfc.catalog.v1';
 const load = (k, f) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; }
                          catch (e) { toast('Storage full — remove some saved quotations.'); return false; } };
@@ -103,6 +104,34 @@ const DEFAULT_PROFILE = {
   address: 'الدمام شارع الملك سعود',
   navy: '#1B2A5B', gold: '#C9A24B'
 };
+
+/* The starter item list — the jobs this shop quotes again and again.
+   The user prunes or adds to it under ⋯ › My item list, and every line
+   typed on a quotation joins it automatically on save. */
+const DEFAULT_CATALOG = [
+  { d:'Concealed AC - compressor change + nitrogen + R22 gas refill', u:'1050' },
+  { d:'Concealed AC - gas refill',                                    u:'250'  },
+  { d:'Concealed AC - fan motor change + cleaning',                   u:'250'  },
+  { d:'Concealed AC - PCB repair',                                    u:'350'  },
+  { d:'Split AC - compressor change + PCB repair + gas refill',       u:'780'  },
+  { d:'Split AC - gas refill + outdoor unit cleaning',                u:'300'  },
+  { d:'Split AC - indoor fan motor change',                           u:'200'  },
+  { d:'Split AC - capacitor change',                                  u:'200'  },
+  { d:'AC water leak repair',                                         u:'100'  },
+  { d:'AC service and cleaning',                                      u:'150'  },
+  { d:'Water leakage repair',                                         u:'100'  },
+  { d:'Site visit and inspection',                                    u:''     }
+];
+let catalog = load(K_CATALOG, null);
+if (!Array.isArray(catalog)) catalog = clone(DEFAULT_CATALOG);
+catalog = catalog.filter(c => c && typeof c === 'object');
+
+/* one short line for the dropdown — the full text still goes in the description */
+function catLabel(c) {
+  const d = String((c && c.d) || '').split(/\r?\n/).join(' · ').trim();
+  const short = d.length > 58 ? d.slice(0, 57) + '…' : d;
+  return c.u ? short + '  ·  ' + c.u : short;
+}
 
 const BASE_COLS = () => ([
   { key:'no',    ar:'م',              en:'No.',                 kind:'no',    fixed:true,  w:8.4  },
@@ -331,15 +360,74 @@ function updateReadouts() {
   $('#itemsCount').textContent = q.rows.length + (q.rows.length === 1 ? ' item' : ' items');
 }
 
-/* shrink the line-item type step by step so a long quotation still fits one A4 page */
-const FIT_STEPS = [[12.8,8],[12,7],[11.2,6],[10.5,5],[9.8,4.2],[9.2,3.6],[8.6,3],[8,2.5],[7.4,2],[6.9,1.6],[6.4,1.3]];
+/* A long quotation is shrunk step by step until it fits the one A4 page;
+   a short one is opened out instead, so the table always meets the totals
+   block rather than leaving a bare white gap in the middle of the page. */
+const FIT_STEPS = [[12.8,8],[12,7],[11.2,6],[10.5,5],[9.8,4.2],[9.2,3.6],[8.6,3],[8,2.5],[7.4,2],[6.9,1.6],[6.4,1.3],[6,1],[5.6,.8],[5.2,.6]];
+const MAX_ROW_PAD = 20;
+const overflows = doc => doc.scrollHeight > doc.clientHeight + 1;
+
 function fitPage() {
   const page = $('#page'), doc = $('.doc', page);
-  if (!doc) return;
-  for (let i = 0; i < FIT_STEPS.length; i++) {
-    doc.style.setProperty('--item-fs',  FIT_STEPS[i][0] + 'px');
-    doc.style.setProperty('--item-pad', FIT_STEPS[i][1] + 'px');
-    if (doc.scrollHeight <= doc.clientHeight + 1) return;
+  if (!doc || doc.clientHeight < 100) return;      /* hidden — nothing to measure */
+  let step = 0;
+  for (; step < FIT_STEPS.length; step++) {
+    doc.style.setProperty('--item-fs',  FIT_STEPS[step][0] + 'px');
+    doc.style.setProperty('--item-pad', FIT_STEPS[step][1] + 'px');
+    if (!overflows(doc)) break;
+  }
+  if (!overflows(doc)) fillPage(doc);              /* room to spare — spread out into it */
+  else tooLong();                                  /* smaller than this is unreadable */
+}
+
+/* one warning per document, not one per keystroke */
+let warnedLong = false;
+function tooLong() {
+  if (warnedLong) return;
+  warnedLong = true;
+  toast('Too many items for one page — remove a few or shorten the descriptions.');
+}
+
+/* the empty band left between the items table and the stamp / totals block */
+function freeBand(doc) {
+  const items = $('.items-wrap', doc), bottom = $('.doc-bottom', doc);
+  if (!items || !bottom) return 0;
+  return bottom.getBoundingClientRect().top - items.getBoundingClientRect().bottom;
+}
+
+function fillPage(doc) {
+  const tbody = $('table.items tbody', doc);
+  if (!tbody || !tbody.rows.length) return;
+
+  /* first, a little more air in every row — up to a sensible limit */
+  const pad  = parseFloat(getComputedStyle(doc).getPropertyValue('--item-pad')) || 8;
+  const grow = Math.min(MAX_ROW_PAD - pad, Math.max(0, freeBand(doc) - 2) / (tbody.rows.length * 2));
+  if (grow > 0.5) {
+    doc.style.setProperty('--item-pad', (pad + grow).toFixed(1) + 'px');
+    if (overflows(doc)) doc.style.setProperty('--item-pad', pad + 'px');
+  }
+
+  /* then rule out whatever is still empty, one blank row at a time */
+  const cols = tbody.rows[tbody.rows.length - 1].cells.length;
+  for (let guard = 0; guard < 40; guard++) {
+    const tr = document.createElement('tr');
+    tr.className = 'filler' + (tbody.rows.length % 2 ? '' : ' alt');
+    for (let c = 0; c < cols; c++) {
+      const td = document.createElement('td');
+      if (c === 0) td.className = 'c-no';
+      td.innerHTML = '&nbsp;';
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+    if (freeBand(doc) < 0.5 || overflows(doc)) { tbody.removeChild(tr); break; }
+  }
+
+  /* and share out whatever sliver is left over, so the table meets the totals */
+  const pad2  = parseFloat(getComputedStyle(doc).getPropertyValue('--item-pad')) || 8;
+  const grow2 = Math.max(0, freeBand(doc) - 2) / (tbody.rows.length * 2);
+  if (grow2 > 0.3) {
+    doc.style.setProperty('--item-pad', (pad2 + grow2).toFixed(1) + 'px');
+    if (overflows(doc)) doc.style.setProperty('--item-pad', pad2 + 'px');
   }
 }
 
@@ -394,6 +482,11 @@ function renderItemsEditor() {
       '<label class="field"><span>' + esc(c.en || c.ar) + '</span>' +
         '<input class="cellbox" data-cell="' + ri + ',' + c.key + '" value="' + esc(r[c.key] || '') + '"></label>').join('');
     return '<div class="item-card">' +
+      '<div class="ic-pick"><select class="pick" data-pick="' + ri + '" aria-label="Pick an item">' +
+        '<option value="">＋ Pick an item…</option>' +
+        catalog.map((c, i) => '<option value="' + i + '">' + esc(catLabel(c)) + '</option>').join('') +
+        '<option value="manage">✎ Edit my item list…</option>' +
+      '</select></div>' +
       '<div class="ic-head">' +
         '<input class="n" data-cell="' + ri + ',no" value="' + esc(r.no || '') + '" aria-label="Item number">' +
         '<textarea class="desc" rows="2" data-cell="' + ri + ',desc"' +
@@ -414,6 +507,23 @@ function renderItemsEditor() {
     '</div>';
   }).join('');
 }
+
+/* picking from the list fills the line in — description, price, and a
+   quantity of 1 — leaving only what is genuinely one-off to be typed */
+$('#editor').addEventListener('change', e => {
+  const sel = e.target.closest('select.pick');
+  if (!sel) return;
+  const pick = sel.value;
+  sel.value = '';
+  if (pick === 'manage') return openItems();
+  if (pick === '') return;
+  const c = catalog[+pick], r = state.quote.rows[+sel.dataset.pick];
+  if (!c || !r) return;
+  r.desc = c.d;
+  if (c.u && !String(r.unit || '').trim()) r.unit = c.u;
+  if (!String(r.qty || '').trim()) r.qty = '1';
+  touched(true);
+});
 
 /* everything most quotations never need, folded away in one place */
 function renderAdvanced() {
@@ -635,10 +745,82 @@ function saveQuote() {
   if (save(K_QUOTES, list)) {
     state.savedId = q.id;
     save(K_CURRENT, state.quote);
+    try { learnItems(q); } catch (e) { /* the list is a convenience, never a blocker */ }
     $('#docStatus').textContent = quoteRef(q) + ' · saved';
     toast('Quotation saved');
   }
 }
+/* ═══════════════════════════════════════════════════════════
+   MY ITEM LIST
+   ═══════════════════════════════════════════════════════════ */
+function saveCatalog() { save(K_CATALOG, catalog); }
+
+function renderCatalog() {
+  $('#catList').innerHTML = catalog.length
+    ? catalog.map((c, i) =>
+        '<div class="cat"' + (isAr(c.d) ? ' dir="rtl"' : '') + '>' +
+          '<textarea class="cat-d" rows="2" data-cat="' + i + ',d" placeholder="What the job is called">' + esc(c.d) + '</textarea>' +
+          '<input class="cat-u" inputmode="decimal" data-cat="' + i + ',u" value="' + esc(c.u || '') + '" placeholder="Price">' +
+          '<button class="cat-x" data-catdel="' + i + '" title="Remove" aria-label="Remove">✕</button>' +
+        '</div>').join('')
+    : '<div class="empty">Your list is empty.<br>Tap <b>＋ Add an item</b>, or just save a quotation — its lines land here.</div>';
+}
+function openItems() {
+  renderCatalog();
+  $('#itemsPanel').hidden = false;
+}
+$('#itemsPanel').addEventListener('input', e => {
+  const el = e.target;
+  if (!el.dataset.cat) return;
+  const [i, field] = el.dataset.cat.split(',');
+  if (!catalog[+i]) return;
+  catalog[+i][field] = el.value;
+  saveCatalog();
+  renderItemsEditor();                      /* the dropdowns follow along */
+});
+$('#itemsPanel').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.hasAttribute('data-close')) { $('#itemsPanel').hidden = true; return; }
+  if (b.dataset.catdel != null && b.dataset.catdel !== '') {
+    catalog.splice(+b.dataset.catdel, 1);
+    saveCatalog(); renderCatalog(); renderItemsEditor();
+    return;
+  }
+  if (b.dataset.act === 'cat-add') {
+    catalog.unshift({ d: '', u: '' });
+    saveCatalog(); renderCatalog();
+    const first = $('.cat-d', $('#catList'));
+    if (first) first.focus();
+    return;
+  }
+  if (b.dataset.act === 'cat-reset') {
+    clone(DEFAULT_CATALOG).forEach(c => { if (!findItem(c.d)) catalog.push(c); });
+    saveCatalog(); renderCatalog(); renderItemsEditor();
+    toast('Starter items are back in the list');
+  }
+});
+
+function findItem(d) {
+  const k = String(d || '').trim().toLowerCase();
+  return k ? catalog.find(c => String(c.d || '').trim().toLowerCase() === k) : null;
+}
+/* every line typed on a saved quotation joins the list, newest first */
+function learnItems(q) {
+  let added = 0;
+  q.rows.forEach(r => {
+    const d = String(r.desc || '').trim();
+    if (!d) return;
+    const u = String(r.unit || '').trim();
+    const hit = findItem(d);
+    if (hit) { if (u) hit.u = u; catalog.splice(catalog.indexOf(hit), 1); catalog.unshift(hit); }
+    else { catalog.unshift({ d: d, u: u }); added++; }
+  });
+  if (catalog.length > 80) catalog.length = 80;
+  if (added) renderItemsEditor();
+  saveCatalog();
+}
+
 function openHistory() {
   renderHistory('');
   $('#histSearch').value = '';
@@ -701,12 +883,20 @@ function docShown() { return document.body.classList.contains('show-doc'); }
 function showDoc(then) {
   document.body.classList.add('show-doc');
   window.scrollTo(0, 0);
-  /* measure only now that the page has a size — a hidden one measures as zero */
-  requestAnimationFrame(() => {
+  /* measure only now that the page has a size — a hidden one measures as zero.
+     The timer is a backstop: a minimised, covered or background tab never runs
+     an animation frame, and the document would otherwise never be drawn. */
+  let drawn = false;
+  const draw = () => {
+    if (drawn) return;
+    drawn = true;
+    warnedLong = false;                 /* one warning each time the document is opened */
     renderDoc();
     applyZoom(fitZoom(), true);
     if (then) setTimeout(then, 150);
-  });
+  };
+  requestAnimationFrame(draw);
+  setTimeout(draw, 80);
 }
 function showForm() {
   document.body.classList.remove('show-doc');
@@ -729,6 +919,7 @@ document.addEventListener('click', e => {
   else if (act === 'edit')      showForm();
   else if (act === 'history')   openHistory();
   else if (act === 'settings')  openSettings();
+  else if (act === 'items')     openItems();
   else if (act === 'duplicate') {
     const c = clone(state.quote);
     c.id = uid(); c.created = c.updated = Date.now();
@@ -740,6 +931,14 @@ document.addEventListener('click', e => {
 /* editor's own save button */
 $('#editor').addEventListener('click', e => {
   if (e.target.closest('[data-act="save"]')) { saveQuote(); showDoc(); }
+});
+
+/* Printing straight from Chrome's own menu (or Ctrl+P caught by the browser
+   rather than by us) would otherwise print the empty page element. */
+window.addEventListener('beforeprint', () => {
+  if (docShown() && $('.doc')) return;
+  document.body.classList.add('show-doc');
+  renderDoc();
 });
 
 function doPrint() {

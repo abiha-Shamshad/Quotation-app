@@ -168,6 +168,13 @@ body.show-doc .doc-only{display:inline-flex}
   border:1px solid var(--line);border-radius:11px;background:#fbfcfe;
   padding:10px;display:flex;flex-direction:column;gap:9px;
 }
+.ic-pick{display:grid;grid-template-columns:44px 1fr 32px;gap:8px}
+.pick{
+  grid-column:2;width:100%;font:inherit;font-size:13px;color:var(--navy);
+  padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;
+  cursor:pointer;min-width:0;
+}
+.pick:focus{outline:none;border-color:var(--navy)}
 .ic-head{display:grid;grid-template-columns:44px 1fr 32px;gap:8px;align-items:start}
 .ic-head .n{
   font:inherit;font-size:13px;font-weight:700;text-align:center;color:var(--navy);
@@ -261,6 +268,25 @@ body.show-doc .doc-only{display:inline-flex}
 .up-prev img,.up-prev svg{max-width:100%;max-height:100%;object-fit:contain}
 .up-btns{display:flex;gap:7px}
 
+/* ─────────────── my item list ─────────────── */
+.cat-list{display:flex;flex-direction:column;gap:9px}
+.cat{display:grid;grid-template-columns:1fr 84px 30px;gap:8px;align-items:start}
+.cat-d{
+  font:inherit;font-size:13.5px;line-height:1.4;resize:vertical;min-height:46px;
+  padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%;
+}
+.cat[dir=rtl] .cat-d{font-family:var(--arabic)}
+.cat-u{
+  font:inherit;font-size:13.5px;font-weight:700;color:var(--navy);text-align:center;
+  padding:9px 6px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%;min-width:0;
+}
+.cat-d:focus,.cat-u:focus{outline:none;border-color:var(--navy)}
+.cat-x{
+  width:30px;height:38px;border:0;border-radius:9px;background:none;
+  color:var(--muted);font-size:13px;cursor:pointer;
+}
+.cat-x:hover{background:#fdeaee;color:#c23b52}
+
 .search{
   width:100%;font:inherit;font-size:14px;padding:11px 13px;margin-bottom:12px;
   border:1px solid var(--line);border-radius:10px;background:#fff;
@@ -314,7 +340,8 @@ body.show-doc .doc-only{display:inline-flex}
 
 .doc{
   position:absolute;
-  inset:30px 32px 26px;
+  /* the bottom inset clears the frame's corner arcs, which sweep inwards there */
+  inset:30px 32px 64px;
   display:flex;flex-direction:column;
   --item-fs:12.8px;
   --item-pad:8px;
@@ -395,9 +422,11 @@ table.items tbody tr.alt td{background:var(--band-lite)}
 table.items td.c-no{background:var(--band);font-weight:600;font-size:calc(var(--item-fs) + 1.2px);color:var(--navy)}
 table.items td.c-total{font-weight:800;font-size:calc(var(--item-fs) + 2.2px);color:var(--navy)}
 table.items td.c-desc{padding:var(--item-pad) 12px}
+/* blank ruled rows that carry the table down to the totals block */
+table.items tr.filler td{color:transparent}
 
 /* ── stamp + totals ── */
-.doc-bottom{margin-top:auto;padding-top:10px;display:flex;align-items:flex-end;gap:18px}
+.doc-bottom{margin-top:auto;padding-top:10px;margin-inline:14px;display:flex;align-items:flex-end;gap:18px}
 .stamp-box{width:230px;flex:none;display:flex;justify-content:center;align-items:flex-end;padding-bottom:6px}
 .stamp-box img,.stamp-box svg{width:134px;height:134px;object-fit:contain;opacity:.92}
 .totals{flex:1;display:flex;flex-direction:column;gap:4px}
@@ -418,7 +447,7 @@ table.items td.c-desc{padding:var(--item-pad) 12px}
 
 /* ── footer ── */
 .doc-footer{
-  margin-top:12px;border-top:1.4px solid var(--gold);padding-top:9px;
+  margin:12px 44px 0;border-top:1.4px solid var(--gold);padding-top:9px;
   display:flex;align-items:center;justify-content:space-between;gap:8px;
 }
 .f-item{display:flex;align-items:center;gap:7px;min-width:0}

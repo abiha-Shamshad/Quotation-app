@@ -33,6 +33,7 @@
         <button class="only-mobile" data-act="history">Saved quotations</button>
         <button data-act="new">New quotation</button>
         <button data-act="duplicate">Duplicate this one</button>
+        <button data-act="items">My item list</button>
         <button data-act="settings">Company profile</button>
       </div>
     </details>
@@ -145,6 +146,28 @@
     <footer class="sheet-foot">
       <button class="btn" data-close>Close</button>
       <button class="btn btn-navy" data-act="save-profile">Save profile</button>
+    </footer>
+  </div>
+</div>
+
+<!-- ══════════════════ MY ITEM LIST PANEL ══════════════════ -->
+<div class="overlay no-print" id="itemsPanel" hidden>
+  <div class="sheet">
+    <header class="sheet-head">
+      <h2>My item list</h2>
+      <button class="x" data-close>✕</button>
+    </header>
+    <div class="sheet-body">
+      <p class="note">Everything here shows up in the <b>Pick an item</b> menu on each line.
+        Whatever you type on a quotation is added automatically when you save it.</p>
+      <div id="catList" class="cat-list"></div>
+      <div class="grid-tools">
+        <button class="chip" data-act="cat-add">＋ Add an item</button>
+        <button class="chip" data-act="cat-reset">Restore the starter list</button>
+      </div>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn btn-navy" data-close>Done</button>
     </footer>
   </div>
 </div>
