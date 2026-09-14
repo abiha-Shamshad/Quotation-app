@@ -20,6 +20,7 @@ to system fonts and still prints correctly.)
 | `index.html` | App shell — toolbar, the form, the document screen, panels |
 | `app.css` | App chrome **and** the document layout (the `@media print` block at the bottom is what makes print == screen) |
 | `app.js` | State, live calculations, rendering, save/history, item list, print |
+| `assets/` | The company logo and rubber stamp (transparent PNGs) used on the document |
 
 ## Using it
 
@@ -33,14 +34,14 @@ you work. It appears once you have added everything and press **Save** or **PDF 
 - **Save** — stores the quotation's *data* (not a picture) and shows you the finished document
 - **PDF / Print** — shows the document and opens the print dialog; pick *Save as PDF* for a file,
   or a printer to print
-- **⋯** — New quotation · Duplicate this one · My item list · Company profile (and *Saved* on a phone)
+- **⋯** — New quotation · Duplicate this one · My item list (and *Saved* on a phone)
 
 Keyboard: `Ctrl+S` save, `Ctrl+P` print, `Esc` back to the form.
 
 **Details** — one plain field per cell of the top table: Ref. No., Date, Telephone,
 Client Mobile, Location, Contractor and Client. Each caption is that cell's own label, so
 relabelling a cell under *Advanced* renames the field here too. Contractor name and telephone
-are pre-filled from the company profile but can be changed per quotation.
+are pre-filled with the company's own details but can be changed per quotation.
 
 **Items** — one card per line: **Pick an item ▾**, number, description, Qty, Unit price, Total.
 
@@ -67,10 +68,10 @@ VAT % is the only input (default 15).
 rename the Arabic/English labels of any cell in the top table, rename the item-column headings,
 and add or remove extra spec columns (they slot in before Total Price).
 
-**Company profile** (in the `⋯` menu) — logo, stamp/seal, company name (AR + EN), default
-contractor telephone, the two footer phones, email, address and the two brand colours. Company
-name, logo and stamp are deliberately *not* editable per quotation — only here. Upload images
-under ~1.5 MB; until you upload real artwork, a built-in JB monogram and round seal are drawn in.
+**The company is fixed.** This app quotes for Gulf Borders For Contracting and nothing else, so
+the letterhead — logo, stamp/seal, company name (AR + EN), the footer phones, email, address and
+the brand navy/gold — is baked in. It lives in one place, the `COMPANY` object near the top of
+`app.js`, alongside the artwork in `assets/`; change it there and every quotation follows.
 
 **The document screen** — the A4 sheet exactly as it prints; the button above it toggles
 100% for a closer look. Nothing is editable here — press `← Edit` to change something.

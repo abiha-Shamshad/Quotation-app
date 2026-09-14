@@ -34,7 +34,6 @@
         <button data-act="new">New quotation</button>
         <button data-act="duplicate">Duplicate this one</button>
         <button data-act="items">My item list</button>
-        <button data-act="settings">Company profile</button>
       </div>
     </details>
   </div>
@@ -99,56 +98,6 @@
   </section>
 
 </main>
-
-<!-- ══════════════════ COMPANY PROFILE PANEL ══════════════════ -->
-<div class="overlay no-print" id="settingsPanel" hidden>
-  <div class="sheet">
-    <header class="sheet-head">
-      <h2>Company profile</h2>
-      <button class="x" data-close>✕</button>
-    </header>
-    <div class="sheet-body">
-      <p class="note">Saved once and reused on every quotation.</p>
-
-      <div class="uploads">
-        <label class="upload">
-          <span>Logo</span>
-          <div class="up-prev" id="logoPrev"></div>
-          <input type="file" accept="image/*" id="logoFile" hidden>
-          <span class="up-btns">
-            <button class="chip" data-pick="logoFile">Upload</button>
-            <button class="chip" data-clear="logo">Reset</button>
-          </span>
-        </label>
-        <label class="upload">
-          <span>Stamp / seal</span>
-          <div class="up-prev round" id="stampPrev"></div>
-          <input type="file" accept="image/*" id="stampFile" hidden>
-          <span class="up-btns">
-            <button class="chip" data-pick="stampFile">Upload</button>
-            <button class="chip" data-clear="stamp">Reset</button>
-          </span>
-        </label>
-      </div>
-
-      <div class="field-grid">
-        <label class="field"><span>Company name (Arabic)</span><input id="p_nameAr" dir="rtl"></label>
-        <label class="field"><span>Company name (English)</span><input id="p_nameEn"></label>
-        <label class="field"><span>Default contractor telephone</span><input id="p_tel" inputmode="tel"></label>
-        <label class="field"><span>Footer phone 1</span><input id="p_phone1" inputmode="tel"></label>
-        <label class="field"><span>Footer phone 2</span><input id="p_phone2" inputmode="tel"></label>
-        <label class="field"><span>Email</span><input id="p_email" inputmode="email"></label>
-        <label class="field wide"><span>Address</span><input id="p_address" dir="rtl"></label>
-        <label class="field"><span>Brand navy</span><input type="color" id="p_navy"></label>
-        <label class="field"><span>Brand gold</span><input type="color" id="p_gold"></label>
-      </div>
-    </div>
-    <footer class="sheet-foot">
-      <button class="btn" data-close>Close</button>
-      <button class="btn btn-navy" data-act="save-profile">Save profile</button>
-    </footer>
-  </div>
-</div>
 
 <!-- ══════════════════ MY ITEM LIST PANEL ══════════════════ -->
 <div class="overlay no-print" id="itemsPanel" hidden>

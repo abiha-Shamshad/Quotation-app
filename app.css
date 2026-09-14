@@ -154,7 +154,6 @@ body.show-doc .doc-only{display:inline-flex}
   outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,42,91,.12);
 }
 .field input[dir=rtl],.field textarea[dir=rtl],.mini[dir=rtl]{font-family:var(--arabic)}
-.field input[type=color]{padding:3px;height:38px}
 .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .field-grid .wide{grid-column:1/-1}
 .mini{
@@ -258,16 +257,6 @@ body.show-doc .doc-only{display:inline-flex}
 .sheet-foot .btn{border-color:var(--line);background:#fff;color:var(--navy)}
 .sheet-foot .btn-navy{background:var(--navy);color:#fff;border-color:var(--navy)}
 
-.uploads{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-.upload{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
-.upload>span:first-child{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-.up-prev{
-  width:100%;height:86px;border:1px solid var(--line);border-radius:11px;background:#fff;
-  display:grid;place-items:center;padding:8px;
-}
-.up-prev img,.up-prev svg{max-width:100%;max-height:100%;object-fit:contain}
-.up-btns{display:flex;gap:7px}
-
 /* ─────────────── my item list ─────────────── */
 .cat-list{display:flex;flex-direction:column;gap:9px}
 .cat{display:grid;grid-template-columns:1fr 84px 30px;gap:8px;align-items:start}
@@ -349,14 +338,14 @@ body.show-doc .doc-only{display:inline-flex}
 .doc>*{flex:0 0 auto}
 
 /* ── letterhead ── */
-.doc-head{display:flex;align-items:center;justify-content:center;gap:20px;padding-top:2px}
-.doc-logo{height:90px;width:auto;flex:none;display:block}
+.doc-head{display:flex;align-items:center;justify-content:center;gap:18px;padding-top:2px}
+.doc-logo{height:78px;width:auto;flex:none;display:block}
 .doc-names{display:flex;flex-direction:column;gap:2px}
 .name-ar{
   font-family:var(--arabic);direction:rtl;
-  font-size:30px;font-weight:800;color:var(--gold);line-height:1.25;
+  font-size:25px;font-weight:800;color:var(--gold);line-height:1.25;
 }
-.name-en{font-size:26px;font-weight:700;color:var(--navy);letter-spacing:.2px;line-height:1.2}
+.name-en{font-size:24px;font-weight:700;color:var(--navy);letter-spacing:.2px;line-height:1.2}
 
 /* ── title ── */
 .doc-title{position:relative;text-align:center;margin:8px 0 12px;height:78px}
@@ -466,7 +455,6 @@ table.items tr.filler td{color:transparent}
   .editor{padding:12px 12px 32px}
   .preview{padding:14px 8px 70px}
   .page-holder{justify-content:flex-start}
-  .uploads{grid-template-columns:1fr}
 }
 @media (max-width:560px){
   /* the bar keeps only the two everyday actions — the rest moves into ⋯ */

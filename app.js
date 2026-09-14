@@ -36,33 +36,12 @@ function toast(msg) {
   toastT = setTimeout(() => { t.hidden = true; }, 2400);
 }
 
-/* ───────────── default artwork (replaceable in Company profile) ───────────── */
-let svgSeq = 0;
-function defaultLogo() {
-  return `<svg class="doc-logo" viewBox="0 0 230 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo">
-    <text x="115" y="112" text-anchor="middle" font-family="Poppins,Segoe UI,Arial,sans-serif"
-          font-size="132" font-weight="800" letter-spacing="-10" fill="#1B2A5B">JB</text>
-  </svg>`;
-}
-function defaultStamp() {
-  const id = 'sealArc' + (++svgSeq);
-  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stamp">
-    <defs>
-      <path id="${id}t" d="M 26,100 A 74,74 0 0 1 174,100" fill="none"/>
-      <path id="${id}b" d="M 34,100 A 66,66 0 0 0 166,100" fill="none"/>
-    </defs>
-    <circle cx="100" cy="100" r="94" fill="none" stroke="#1B2A5B" stroke-width="3.4"/>
-    <circle cx="100" cy="100" r="85" fill="none" stroke="#1B2A5B" stroke-width="1.4"/>
-    <text font-family="Tajawal,Cairo,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#1B2A5B">
-      <textPath href="#${id}t" xlink:href="#${id}t" startOffset="50%" text-anchor="middle">مؤسسة حدود الخليج للمقاولات</textPath>
-    </text>
-    <text font-family="Poppins,Segoe UI,sans-serif" font-size="12.5" font-weight="600" fill="#1B2A5B">
-      <textPath href="#${id}b" xlink:href="#${id}b" startOffset="50%" text-anchor="middle">Gulf Borders For Contracting</textPath>
-    </text>
-    <text x="100" y="128" text-anchor="middle" font-family="Poppins,Segoe UI,sans-serif"
-          font-size="62" font-weight="800" letter-spacing="-5" fill="#1B2A5B">JB</text>
-  </svg>`;
-}
+/* ───────────── company artwork ─────────────
+   The company mark and rubber stamp, lifted from the printed template and kept
+   as transparent PNGs in assets/ so screen and print show the same art. */
+const ART_LOGO  = 'assets/logo.png';
+const ART_STAMP = 'assets/stamp.png';
+
 const ICONS = {
   phone: 'M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z',
   mail : 'M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z',
@@ -70,21 +49,22 @@ const ICONS = {
 };
 const ico = d => `<span class="f-ico"><svg viewBox="0 0 24 24"><path d="${d}"/></svg></span>`;
 
-/* decorative gold + navy double frame, drawn 1:1 over the 794×1123 page */
+/* Decorative gold + navy double frame, drawn 1:1 over the 794×1123 page.
+   The four gold corner sweeps are kept tight to their corners so the
+   letterhead and the footer never run into them. */
 function frameSVG(navy, gold) {
   return `<svg class="frame" viewBox="0 0 794 1123" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="6.5" y="6.5" width="781" height="1110" rx="44" fill="none" stroke="${navy}" stroke-width="13"/>
     <rect x="19" y="19" width="756" height="1085" rx="72" fill="none" stroke="${gold}" stroke-width="3.2"/>
     <rect x="27" y="27" width="740" height="1069" rx="58" fill="none" stroke="${navy}" stroke-width="1.6"/>
-    <path d="M32 150 A 118 118 0 0 1 150 32"  fill="none" stroke="${gold}" stroke-width="3.6"/>
-    <path d="M644 32 A 118 118 0 0 1 762 150" fill="none" stroke="${gold}" stroke-width="3.6"/>
-    <path d="M32 973 A 118 118 0 0 0 150 1091"  fill="none" stroke="${gold}" stroke-width="3.6"/>
-    <path d="M644 1091 A 118 118 0 0 0 762 973" fill="none" stroke="${gold}" stroke-width="3.6"/>
+    <path d="M32 124 A 92 92 0 0 1 124 32"    fill="none" stroke="${gold}" stroke-width="3.6"/>
+    <path d="M670 32 A 92 92 0 0 1 762 124"   fill="none" stroke="${gold}" stroke-width="3.6"/>
+    <path d="M32 999 A 92 92 0 0 0 124 1091"  fill="none" stroke="${gold}" stroke-width="3.6"/>
+    <path d="M670 1091 A 92 92 0 0 0 762 999" fill="none" stroke="${gold}" stroke-width="3.6"/>
   </svg>`;
 }
 
 /* ───────────── storage ───────────── */
-const K_PROFILE = 'gbfc.profile.v1';
 const K_QUOTES  = 'gbfc.quotes.v1';
 const K_CURRENT = 'gbfc.current.v1';
 const K_CATALOG = 'gbfc.catalog.v1';
@@ -92,9 +72,10 @@ const load = (k, f) => { try { const v = localStorage.getItem(k); return v ? JSO
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; }
                          catch (e) { toast('Storage full — remove some saved quotations.'); return false; } };
 
-/* ───────────── defaults ───────────── */
-const DEFAULT_PROFILE = {
-  logo: '', stamp: '',
+/* ───────────── defaults ─────────────
+   One company, fixed. Its details live here rather than in a settings panel —
+   every quotation this app makes is a Gulf Borders quotation. */
+const COMPANY = {
   nameAr: 'مؤسسة حدود الخليج للمقاولات',
   nameEn: 'Gulf Borders For Contracting',
   tel: '0592860812',
@@ -159,11 +140,10 @@ function blankRow(cols) {
   return r;
 }
 function newQuote() {
-  const p = state ? state.profile : DEFAULT_PROFILE;
   const cols = BASE_COLS();
   const info = blankInfo();
-  info[1][0].v = p.tel || '';
-  info[1][2].v = (p.nameAr || '') + '\n' + (p.nameEn || '');
+  info[1][0].v = COMPANY.tel;
+  info[1][2].v = COMPANY.nameAr + '\n' + COMPANY.nameEn;
   const rows = [];
   for (let i = 0; i < 7; i++) { const r = blankRow(cols); r.no = String(i + 1); rows.push(r); }
   return { id: uid(), created: Date.now(), updated: Date.now(), info, cols, rows, vat: 15,
@@ -204,7 +184,6 @@ function sampleQuote() {
 
 /* ───────────── state ───────────── */
 let state = {
-  profile: Object.assign({}, DEFAULT_PROFILE, load(K_PROFILE, {})),
   quote:   null,
   savedId: null
 };
@@ -251,18 +230,14 @@ function lblHTML(c) {
 }
 
 function renderDoc() {
-  const q = state.quote, p = state.profile;
+  const q = state.quote, p = COMPANY;
   const page = $('#page');
-  page.style.setProperty('--navy', p.navy || '#1B2A5B');
-  page.style.setProperty('--gold', p.gold || '#C9A24B');
+  page.style.setProperty('--navy', p.navy);
+  page.style.setProperty('--gold', p.gold);
 
   /* letterhead */
-  const logo = p.logo
-    ? '<img class="doc-logo" src="' + p.logo + '" alt="">'
-    : defaultLogo();
-  const stamp = p.stamp
-    ? '<img src="' + p.stamp + '" alt="">'
-    : defaultStamp();
+  const logo  = '<img class="doc-logo" src="' + ART_LOGO + '" alt="' + p.nameEn + '">';
+  const stamp = '<img src="' + ART_STAMP + '" alt="' + p.nameEn + ' stamp">';
 
   /* info table */
   const infoRows = q.info.map(r => {
@@ -674,59 +649,6 @@ function renumber() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   COMPANY PROFILE
-   ═══════════════════════════════════════════════════════════ */
-const P_FIELDS = ['nameAr', 'nameEn', 'tel', 'phone1', 'phone2', 'email', 'address', 'navy', 'gold'];
-function openSettings() {
-  const p = state.profile;
-  P_FIELDS.forEach(f => { const el = $('#p_' + f); if (el) el.value = p[f] || ''; });
-  $('#logoPrev').innerHTML  = p.logo  ? '<img src="' + p.logo + '">'  : defaultLogo();
-  $('#stampPrev').innerHTML = p.stamp ? '<img src="' + p.stamp + '">' : defaultStamp();
-  $('#settingsPanel').hidden = false;
-}
-function readFile(input, cb) {
-  const f = input.files && input.files[0];
-  if (!f) return;
-  if (f.size > 1.6 * 1024 * 1024) return toast('Image too large — please use one under 1.5 MB.');
-  const fr = new FileReader();
-  fr.onload = () => cb(fr.result);
-  fr.readAsDataURL(f);
-  input.value = '';
-}
-$('#logoFile').addEventListener('change', e =>
-  readFile(e.target, d => { state.profile.logo = d; $('#logoPrev').innerHTML = '<img src="' + d + '">'; renderDoc(); }));
-$('#stampFile').addEventListener('change', e =>
-  readFile(e.target, d => { state.profile.stamp = d; $('#stampPrev').innerHTML = '<img src="' + d + '">'; renderDoc(); }));
-
-$('#settingsPanel').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  if (b.dataset.pick)  { e.preventDefault(); $('#' + b.dataset.pick).click(); return; }
-  if (b.dataset.clear) {
-    e.preventDefault();
-    const k = b.dataset.clear;
-    state.profile[k] = '';
-    $('#' + k + 'Prev').innerHTML = k === 'logo' ? defaultLogo() : defaultStamp();
-    return renderDoc();
-  }
-  if (b.hasAttribute('data-close')) { $('#settingsPanel').hidden = true; return; }
-  if (b.dataset.act === 'save-profile') {
-    P_FIELDS.forEach(f => { const el = $('#p_' + f); if (el) state.profile[f] = el.value; });
-    save(K_PROFILE, state.profile);
-    renderDoc();
-    $('#settingsPanel').hidden = true;
-    toast('Company profile saved');
-  }
-});
-$('#settingsPanel').addEventListener('input', e => {
-  const id = e.target.id;
-  if (id && id.indexOf('p_') === 0) {
-    state.profile[id.slice(2)] = e.target.value;
-    renderDoc();
-  }
-});
-
-/* ═══════════════════════════════════════════════════════════
    SAVE · HISTORY · DUPLICATE
    ═══════════════════════════════════════════════════════════ */
 function quoteRef(q)    { return (q.info[0][0].v || '').trim() || 'No Ref.'; }
@@ -908,7 +830,7 @@ function showForm() {
    ═══════════════════════════════════════════════════════════ */
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
-  if (!b || b.closest('#settingsPanel') || b.closest('#editor')) return;
+  if (!b || b.closest('#editor')) return;
   const act = b.dataset.act;
   if (act === 'new') {
     loadQuote(newQuote());
@@ -918,7 +840,6 @@ document.addEventListener('click', e => {
   else if (act === 'save')      { saveQuote(); showDoc(); }
   else if (act === 'edit')      showForm();
   else if (act === 'history')   openHistory();
-  else if (act === 'settings')  openSettings();
   else if (act === 'items')     openItems();
   else if (act === 'duplicate') {
     const c = clone(state.quote);
