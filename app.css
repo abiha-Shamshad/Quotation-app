@@ -28,19 +28,48 @@ body{
 }
 button{font-family:inherit}
 
+/* ─────────────── boot splash ─────────────── */
+#bootSplash{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));
+  display:flex;align-items:center;justify-content:center;
+  opacity:1;transition:opacity .4s ease;
+}
+#bootSplash.boot-exit{opacity:0;pointer-events:none}
+.boot-card{
+  width:190px;height:123px;border-radius:20px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 34px rgba(0,0,0,.3);
+  animation:bootPop .7s cubic-bezier(.34,1.56,.64,1) both,
+            bootPulse 2.2s ease-in-out .7s infinite;
+}
+.boot-card img{width:70%;height:70%;object-fit:contain}
+@keyframes bootPop{
+  0%   {opacity:0;transform:scale(.55) rotate(-8deg)}
+  70%  {opacity:1;transform:scale(1.06) rotate(1deg)}
+  100% {opacity:1;transform:scale(1) rotate(0)}
+}
+@keyframes bootPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.04)}
+}
+
 /* ─────────────── app bar ─────────────── */
 .appbar{
   position:sticky;top:0;z-index:40;
   display:flex;align-items:center;gap:12px;
-  padding:9px 14px;height:58px;
+  padding:calc(9px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
+  height:calc(58px + env(safe-area-inset-top));
   background:var(--navy);color:#fff;
 }
 .brandmark{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
 .bm-badge{
-  width:32px;height:32px;flex:none;border-radius:9px;
-  background:var(--gold);color:var(--navy);
-  display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:-.5px;
+  width:36px;height:36px;flex:none;border-radius:9px;
+  background:#fff;padding:4px;border:0;cursor:pointer;
+  display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25);
 }
+.bm-badge:active{transform:translateY(1px)}
+.bm-badge img{width:100%;height:100%;object-fit:contain;display:block}
 .bm-text{display:flex;flex-direction:column;line-height:1.2;min-width:0}
 .bm-text b{font-size:15px;font-weight:600}
 .bm-text i{font-size:11.5px;font-style:normal;color:#b9c6e6;
@@ -87,18 +116,18 @@ button{font-family:inherit}
 /* ─────────────── workspace ─────────────── */
 /* One screen at a time: the form while you fill it in, the finished
    quotation once you Save or Print. */
-.workspace{display:block;min-height:calc(100vh - 58px)}
+.workspace{display:block;min-height:calc(100vh - 58px - env(safe-area-inset-top))}
 .editor{
-  padding:18px 16px 40px;
+  padding:18px max(16px, env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   display:flex;flex-direction:column;gap:14px;
   max-width:720px;margin:0 auto;
 }
 .editor>*{flex:0 0 auto}
 .preview{
   display:none;
-  padding:18px 14px 60px;
+  padding:18px max(14px, env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   background:radial-gradient(circle at 50% 0,#e3e8f2,#eef1f6 60%);
-  min-height:calc(100vh - 58px);
+  min-height:calc(100vh - 58px - env(safe-area-inset-top));
 }
 body.show-doc .editor{display:none}
 body.show-doc .preview{display:block}
@@ -226,14 +255,7 @@ body.show-doc .doc-only{display:inline-flex}
 .editor-foot{padding-bottom:22px}
 
 /* ─────────────── preview ─────────────── */
-.zoombar{display:flex;align-items:center;gap:12px;justify-content:flex-end;
-  max-width:794px;margin:0 auto 10px}
-.zhint{margin-right:auto;font-size:12px;color:var(--muted)}
-.zbtn{
-  border:1px solid var(--line);background:#fff;color:var(--muted);
-  font:inherit;font-size:12px;padding:7px 13px;border-radius:20px;cursor:pointer;
-}
-.zbtn:hover{color:var(--navy);border-color:var(--navy)}
+
 .page-holder{display:flex;justify-content:center}
 
 /* ─────────────── overlays ─────────────── */
@@ -259,17 +281,13 @@ body.show-doc .doc-only{display:inline-flex}
 
 /* ─────────────── my item list ─────────────── */
 .cat-list{display:flex;flex-direction:column;gap:9px}
-.cat{display:grid;grid-template-columns:1fr 84px 30px;gap:8px;align-items:start}
+.cat{display:grid;grid-template-columns:1fr 30px;gap:8px;align-items:start}
 .cat-d{
   font:inherit;font-size:13.5px;line-height:1.4;resize:vertical;min-height:46px;
   padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%;
 }
 .cat[dir=rtl] .cat-d{font-family:var(--arabic)}
-.cat-u{
-  font:inherit;font-size:13.5px;font-weight:700;color:var(--navy);text-align:center;
-  padding:9px 6px;border:1px solid var(--line);border-radius:9px;background:#fff;width:100%;min-width:0;
-}
-.cat-d:focus,.cat-u:focus{outline:none;border-color:var(--navy)}
+.cat-d:focus{outline:none;border-color:var(--navy)}
 .cat-x{
   width:30px;height:38px;border:0;border-radius:9px;background:none;
   color:var(--muted);font-size:13px;cursor:pointer;
@@ -299,7 +317,7 @@ body.show-doc .doc-only{display:inline-flex}
 .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 10px}
 
 .toast{
-  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
+  position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);
   background:#12203f;color:#fff;padding:11px 20px;border-radius:30px;
   font-size:13px;z-index:90;box-shadow:0 8px 26px rgba(10,16,35,.35);
   max-width:88vw;text-align:center;
@@ -311,6 +329,7 @@ body.show-doc .doc-only{display:inline-flex}
    ══════════════════════════════════════════════════════════ */
 .page{
   --navy:#1B2A5B;
+  --navy-2:#24356e;
   --gold:#C9A24B;
   --band:#dfe7f5;
   --band-lite:#eef3fb;
@@ -391,7 +410,9 @@ table.items td.rtl{font-family:var(--arabic);direction:rtl}
 .items-wrap{margin-top:12px;border:1.6px solid var(--navy);border-radius:9px;overflow:hidden}
 table.items{width:100%;border-collapse:collapse;table-layout:fixed}
 table.items th{
-  background:var(--navy);color:#fff;padding:7px 4px;border:1px solid rgba(255,255,255,.22);
+  background:linear-gradient(180deg,var(--navy),var(--navy-2));color:#fff;padding:8px 4px;
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 -3px 0 var(--gold);
   font-weight:700;line-height:1.2;
 }
 table.items th:first-child{border-left:0}
@@ -418,25 +439,35 @@ table.items tr.filler td{color:transparent}
 .doc-bottom{margin-top:auto;padding-top:10px;margin-inline:14px;display:flex;align-items:flex-end;gap:18px}
 .stamp-box{width:230px;flex:none;display:flex;justify-content:center;align-items:flex-end;padding-bottom:6px}
 .stamp-box img,.stamp-box svg{width:134px;height:134px;object-fit:contain;opacity:.92}
-.totals{flex:1;display:flex;flex-direction:column;gap:4px}
+.totals{flex:1;display:flex;flex-direction:column;gap:6px}
 .t-row{display:flex;gap:5px}
 .t-row .t-lbl{
-  flex:0 0 40%;background:var(--band);border-radius:3px;
-  padding:8px 18px;font-size:18px;font-weight:700;color:var(--navy);line-height:1.15;
+  flex:0 0 40%;background:#fff;border:1.4px solid var(--navy);border-radius:5px;
+  padding:8px 18px;font-size:16px;font-weight:700;color:var(--navy);line-height:1.15;
+  text-transform:uppercase;letter-spacing:.4px;
   display:flex;align-items:center;
 }
 .t-row .t-val{
-  flex:1;background:var(--band);border-radius:3px;
-  padding:8px 14px;font-size:20px;font-weight:700;color:var(--navy);text-align:center;line-height:1.15;
+  flex:1;background:#fff;border:1.4px solid var(--navy);border-radius:5px;
+  padding:8px 14px;font-size:19px;font-weight:700;color:var(--navy);text-align:center;line-height:1.15;
   display:flex;align-items:center;justify-content:center;
 }
-.t-row.grand{gap:0}
-.t-row.grand .t-lbl{background:var(--navy);color:#fff;border-radius:3px 0 0 3px;font-size:20px;padding:10px 18px;line-height:1.2}
-.t-row.grand .t-val{background:var(--navy);color:#fff;border-radius:0 3px 3px 0;font-size:26px;font-weight:800;padding:9px 14px;line-height:1.2}
+.t-row.grand{gap:0;margin-top:2px}
+.t-row.grand .t-lbl{
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;
+  border:none;border-left:7px solid var(--gold);border-radius:6px 0 0 6px;
+  font-size:18px;letter-spacing:0;white-space:nowrap;padding:11px 16px 11px 15px;line-height:1.2;
+}
+.t-row.grand .t-val{
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;
+  border:none;border-radius:0 6px 6px 0;font-size:28px;font-weight:800;padding:10px 16px;line-height:1.2;
+}
 
 /* ── footer ── */
 .doc-footer{
-  margin:12px 44px 0;border-top:1.4px solid var(--gold);padding-top:9px;
+  margin:16px 0 0;padding:12px 24px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));border-radius:12px;
+  box-shadow:0 4px 14px rgba(15,23,55,.22);
   display:flex;align-items:center;justify-content:space-between;gap:8px;
 }
 .f-item{display:flex;align-items:center;gap:7px;min-width:0}
@@ -445,20 +476,19 @@ table.items tr.filler td{color:transparent}
   display:grid;place-items:center;
 }
 .f-ico svg{width:12px;height:12px;fill:#fff;display:block}
-.f-txt{font-size:12.4px;font-weight:600;color:var(--navy);white-space:nowrap}
+.f-txt{font-size:12.4px;font-weight:600;color:#fff;white-space:nowrap}
 .f-txt.ar{font-family:var(--arabic);direction:rtl;font-size:13px}
 
 /* ══════════════════ responsive ══════════════════ */
 .only-mobile,.menu-list button.only-mobile{display:none}
 
-@media (max-width:900px){
-  .editor{padding:12px 12px 32px}
-  .preview{padding:14px 8px 70px}
-  .page-holder{justify-content:flex-start}
+@media (max-width:500px){
+  .editor{padding:12px max(12px, env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))}
+  .preview{padding:14px max(8px, env(safe-area-inset-right)) calc(70px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left))}
 }
-@media (max-width:560px){
+@media (max-width:500px){
   /* the bar keeps only the two everyday actions — the rest moves into ⋯ */
-  .appbar{padding:9px 10px;gap:8px}
+  .appbar{padding:calc(9px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 9px max(10px, env(safe-area-inset-left));gap:8px}
   .bm-text b{font-size:14px}
   .btn{padding:9px 12px;font-size:12.5px}
   [data-act="history"].btn{display:none}
@@ -470,7 +500,7 @@ table.items tr.filler td{color:transparent}
 @page{size:A4 portrait;margin:0}
 @media print{
   html,body{background:#fff!important;margin:0!important;padding:0!important;height:auto!important}
-  .no-print,.appbar,.editor,.zoombar,.overlay,.toast{display:none!important}
+  .no-print,.appbar,.editor,.overlay,.toast{display:none!important}
   .workspace{display:block!important;min-height:0!important}
   .preview{padding:0!important;margin:0!important;max-height:none!important;overflow:visible!important;background:#fff!important;display:block!important}
   .page-holder{display:block!important;height:auto!important}

@@ -54,20 +54,23 @@ const ico = d => `<span class="f-ico"><svg viewBox="0 0 24 24"><path d="${d}"/><
    letterhead and the footer never run into them. */
 function frameSVG(navy, gold) {
   return `<svg class="frame" viewBox="0 0 794 1123" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="6.5" y="6.5" width="781" height="1110" rx="44" fill="none" stroke="${navy}" stroke-width="13"/>
-    <rect x="19" y="19" width="756" height="1085" rx="72" fill="none" stroke="${gold}" stroke-width="3.2"/>
-    <rect x="27" y="27" width="740" height="1069" rx="58" fill="none" stroke="${navy}" stroke-width="1.6"/>
-    <path d="M32 124 A 92 92 0 0 1 124 32"    fill="none" stroke="${gold}" stroke-width="3.6"/>
-    <path d="M670 32 A 92 92 0 0 1 762 124"   fill="none" stroke="${gold}" stroke-width="3.6"/>
-    <path d="M32 999 A 92 92 0 0 0 124 1091"  fill="none" stroke="${gold}" stroke-width="3.6"/>
-    <path d="M670 1091 A 92 92 0 0 0 762 999" fill="none" stroke="${gold}" stroke-width="3.6"/>
+    <rect x="6" y="6" width="782" height="1111" rx="26" fill="none" stroke="${navy}" stroke-width="10"/>
+    <path d="M0 140 A 140 140 0 0 1 140 0  L0 0 Z"    fill="${navy}"/>
+    <path d="M654 0 A 140 140 0 0 1 794 140 L794 0 Z" fill="${navy}"/>
+    <path d="M0 983 A 140 140 0 0 0 140 1123 L0 1123 Z" fill="${navy}"/>
+    <path d="M794 983 A 140 140 0 0 1 654 1123 L794 1123 Z" fill="${navy}"/>
+    <path d="M8 132 A 122 122 0 0 1 132 8"    fill="none" stroke="${gold}" stroke-width="8" stroke-linecap="square"/>
+    <path d="M662 8 A 122 122 0 0 1 786 132"   fill="none" stroke="${gold}" stroke-width="8" stroke-linecap="square"/>
+    <path d="M8 991 A 122 122 0 0 0 132 1115"  fill="none" stroke="${gold}" stroke-width="8" stroke-linecap="square"/>
+    <path d="M662 1115 A 122 122 0 0 0 786 991" fill="none" stroke="${gold}" stroke-width="8" stroke-linecap="square"/>
+    <rect x="14" y="14" width="766" height="1095" rx="16" fill="none" stroke="${navy}" stroke-width="1.4"/>
   </svg>`;
 }
 
 /* ───────────── storage ───────────── */
 const K_QUOTES  = 'gbfc.quotes.v1';
 const K_CURRENT = 'gbfc.current.v1';
-const K_CATALOG = 'gbfc.catalog.v1';
+const K_CATALOG = 'gbfc.catalog.v2';
 const load = (k, f) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; }
                          catch (e) { toast('Storage full — remove some saved quotations.'); return false; } };
@@ -87,21 +90,25 @@ const COMPANY = {
 };
 
 /* The starter item list — the jobs this shop quotes again and again.
-   The user prunes or adds to it under ⋯ › My item list, and every line
-   typed on a quotation joins it automatically on save. */
+   The user manages it entirely under ⋯ › My item list. */
 const DEFAULT_CATALOG = [
-  { d:'Concealed AC - compressor change + nitrogen + R22 gas refill', u:'1050' },
-  { d:'Concealed AC - gas refill',                                    u:'250'  },
-  { d:'Concealed AC - fan motor change + cleaning',                   u:'250'  },
-  { d:'Concealed AC - PCB repair',                                    u:'350'  },
-  { d:'Split AC - compressor change + PCB repair + gas refill',       u:'780'  },
-  { d:'Split AC - gas refill + outdoor unit cleaning',                u:'300'  },
-  { d:'Split AC - indoor fan motor change',                           u:'200'  },
-  { d:'Split AC - capacitor change',                                  u:'200'  },
-  { d:'AC water leak repair',                                         u:'100'  },
-  { d:'AC service and cleaning',                                      u:'150'  },
-  { d:'Water leakage repair',                                         u:'100'  },
-  { d:'Site visit and inspection',                                    u:''     }
+  { d:'Villa #',       u:'' },
+  { d:'Flat #',        u:'' },
+  { d:'Room #',        u:'' },
+  { d:'Concealed AC',  u:'' },
+  { d:'+',             u:'' },
+  { d:'Indoor',        u:'' },
+  { d:'Outdoor',       u:'' },
+  { d:'Compressor',    u:'' },
+  { d:'Motor',         u:'' },
+  { d:'Capacitor',     u:'' },
+  { d:'Gas',           u:'' },
+  { d:'Water',         u:'' },
+  { d:'Leakage',       u:'' },
+  { d:'Repair',        u:'' },
+  { d:'Change',        u:'' },
+  { d:'Refill',        u:'' },
+  { d:'Cleaning',      u:'' }
 ];
 let catalog = load(K_CATALOG, null);
 if (!Array.isArray(catalog)) catalog = clone(DEFAULT_CATALOG);
@@ -494,7 +501,10 @@ $('#editor').addEventListener('change', e => {
   if (pick === '') return;
   const c = catalog[+pick], r = state.quote.rows[+sel.dataset.pick];
   if (!c || !r) return;
-  r.desc = c.d;
+  /* append rather than replace, so several shortcuts can be picked in a row
+     to build up one description (e.g. "Villa #" then "Concealed AC" then "Change") */
+  const existing = String(r.desc || '').trim();
+  r.desc = existing ? existing + ' ' + c.d : c.d;
   if (c.u && !String(r.unit || '').trim()) r.unit = c.u;
   if (!String(r.qty || '').trim()) r.qty = '1';
   touched(true);
@@ -602,6 +612,7 @@ $('#editor').addEventListener('click', e => {
 
   if (b.dataset.delrow != null && b.dataset.delrow !== '') {
     if (q.rows.length <= 1) return toast('At least one line item is required.');
+    if (!confirm('Delete this item? This can\'t be undone.')) return;
     q.rows.splice(+b.dataset.delrow, 1);
     renumber();
     return touched(true);
@@ -634,6 +645,7 @@ $('#editor').addEventListener('click', e => {
   if (act === 'del-col') {
     for (let i = q.cols.length - 1; i >= 0; i--) {
       if (!q.cols[i].fixed && q.cols[i].key !== 'desc') {
+        if (!confirm('Remove this column? Its data will be cleared from every row.')) return;
         const key = q.cols[i].key;
         q.cols.splice(i, 1);
         q.rows.forEach(r => { delete r[key]; });
@@ -667,9 +679,12 @@ function saveQuote() {
   if (save(K_QUOTES, list)) {
     state.savedId = q.id;
     save(K_CURRENT, state.quote);
-    try { learnItems(q); } catch (e) { /* the list is a convenience, never a blocker */ }
     $('#docStatus').textContent = quoteRef(q) + ' · saved';
     toast('Quotation saved');
+    if (window.AndroidNotify) {
+      try { AndroidNotify.notify('Quotation saved', quoteRef(q) + ' has been saved.'); }
+      catch (e) { /* notification is a nice-to-have, never a blocker */ }
+    }
   }
 }
 /* ═══════════════════════════════════════════════════════════
@@ -682,7 +697,6 @@ function renderCatalog() {
     ? catalog.map((c, i) =>
         '<div class="cat"' + (isAr(c.d) ? ' dir="rtl"' : '') + '>' +
           '<textarea class="cat-d" rows="2" data-cat="' + i + ',d" placeholder="What the job is called">' + esc(c.d) + '</textarea>' +
-          '<input class="cat-u" inputmode="decimal" data-cat="' + i + ',u" value="' + esc(c.u || '') + '" placeholder="Price">' +
           '<button class="cat-x" data-catdel="' + i + '" title="Remove" aria-label="Remove">✕</button>' +
         '</div>').join('')
     : '<div class="empty">Your list is empty.<br>Tap <b>＋ Add an item</b>, or just save a quotation — its lines land here.</div>';
@@ -727,22 +741,6 @@ function findItem(d) {
   const k = String(d || '').trim().toLowerCase();
   return k ? catalog.find(c => String(c.d || '').trim().toLowerCase() === k) : null;
 }
-/* every line typed on a saved quotation joins the list, newest first */
-function learnItems(q) {
-  let added = 0;
-  q.rows.forEach(r => {
-    const d = String(r.desc || '').trim();
-    if (!d) return;
-    const u = String(r.unit || '').trim();
-    const hit = findItem(d);
-    if (hit) { if (u) hit.u = u; catalog.splice(catalog.indexOf(hit), 1); catalog.unshift(hit); }
-    else { catalog.unshift({ d: d, u: u }); added++; }
-  });
-  if (catalog.length > 80) catalog.length = 80;
-  if (added) renderItemsEditor();
-  saveCatalog();
-}
-
 function openHistory() {
   renderHistory('');
   $('#histSearch').value = '';
@@ -781,6 +779,8 @@ $('#historyPanel').addEventListener('click', e => {
     if (q) { const c = clone(q); c.id = uid(); c.created = c.updated = Date.now();
              loadQuote(c); $('#historyPanel').hidden = true; toast('Copied — save it when ready'); }
   } else if (b.dataset.del) {
+    const q = list.find(x => x.id === b.dataset.del);
+    if (!confirm('Delete ' + (q ? quoteRef(q) : 'this quotation') + '? This can\'t be undone.')) return;
     save(K_QUOTES, list.filter(x => x.id !== b.dataset.del));
     renderHistory($('#histSearch').value);
     toast('Deleted');
@@ -815,6 +815,10 @@ function showDoc(then) {
     warnedLong = false;                 /* one warning each time the document is opened */
     renderDoc();
     applyZoom(fitZoom(), true);
+    /* some WebViews haven't actually settled the show-doc reflow by this point,
+       so the very first fitZoom() reads a stale (pre-toggle) pane width — a
+       short follow-up re-measure self-corrects it without any visible delay. */
+    setTimeout(() => { if (autoFit) applyZoom(fitZoom(), true); }, 300);
     if (then) setTimeout(then, 150);
   };
   requestAnimationFrame(draw);
@@ -870,17 +874,31 @@ function doPrint() {
 /* zoom — one toggle: fit to the pane, or 100% */
 let zoom = 1, autoFit = true;
 function fitZoom() {
-  const holder = $('#pageHolder');
-  const avail = holder.clientWidth - 4;
+  /* measure against the real viewport width, not #pageHolder's own clientWidth —
+     on some WebViews the holder reports a stale/wrong width (e.g. mid-reflow
+     right after the show-doc toggle) even though the viewport itself is correct,
+     which was leaving the document sized for a much wider screen than it's on. */
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const preview = $('#preview');
+  const cs = getComputedStyle(preview);
+  const padding = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  const avail = vw - padding - 4;
   return Math.min(1, Math.max(0.25, avail / 794));
 }
 function applyZoom(z, auto) {
   zoom = z; autoFit = !!auto;
   $('#page').style.transform = 'scale(' + z + ')';
   $('#pageHolder').style.height = (1123 * z) + 'px';
-  $('#zoomToggle').textContent = auto ? 'Zoom 100%' : 'Fit to width';
 }
-$('#zoomToggle').addEventListener('click', () => applyZoom(autoFit ? 1 : fitZoom(), !autoFit));
+/* some WebViews settle the pane's real width a little after it's shown —
+   watching the element itself is more reliable than guessing a delay. */
+if (window.ResizeObserver) {
+  let lastW = 0;
+  new ResizeObserver(() => {
+    const w = $('#pageHolder').clientWidth;
+    if (w !== lastW) { lastW = w; if (autoFit && docShown()) applyZoom(fitZoom(), true); }
+  }).observe($('#pageHolder'));
+}
 window.addEventListener('resize', () => { if (autoFit && docShown()) applyZoom(fitZoom(), true); });
 
 /* the ⋯ menu closes when you pick something or tap away */
@@ -912,5 +930,16 @@ $('#docStatus').textContent = quoteRef(state.quote);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
   if (docShown()) { fitPage(); applyZoom(autoFit ? fitZoom() : zoom, autoFit); }
 });
+
+/* boot splash — shown ~3.5s, then fades out over its own .4s transition */
+setTimeout(() => {
+  const splash = $('#bootSplash');
+  if (!splash) return;
+  splash.classList.add('boot-exit');
+  setTimeout(() => splash.remove(), 450);
+}, 3500);
+
+/* session timer — the app reloads itself after 7 minutes */
+setTimeout(() => { location.reload(); }, 7 * 60 * 1000);
 
 })();

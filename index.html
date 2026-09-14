@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Quotation Generator — Gulf Borders For Contracting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,10 +11,15 @@
 </head>
 <body>
 
+<!-- ══════════════════ BOOT SPLASH ══════════════════ -->
+<div id="bootSplash" class="no-print" aria-hidden="true">
+  <div class="boot-card"><img src="assets/logo.png" alt=""></div>
+</div>
+
 <!-- ══════════════════ APP BAR ══════════════════ -->
 <header class="appbar no-print">
   <div class="brandmark">
-    <span class="bm-badge">JB</span>
+    <button class="bm-badge" data-act="edit" title="Back to the form"><img src="assets/logo.png" alt="JB"></button>
     <span class="bm-text">
       <b>Quotation</b>
       <i id="docStatus">New quotation</i>
@@ -87,10 +92,6 @@
 
   <!-- ───────── PREVIEW ───────── -->
   <section class="preview" id="preview">
-    <div class="zoombar no-print">
-      <span class="zhint">This is exactly what prints.</span>
-      <button class="zbtn" id="zoomToggle">Zoom 100%</button>
-    </div>
     <div class="page-holder" id="pageHolder">
       <!-- the printed document -->
       <div class="page" id="page"></div>
@@ -108,7 +109,7 @@
     </header>
     <div class="sheet-body">
       <p class="note">Everything here shows up in the <b>Pick an item</b> menu on each line.
-        Whatever you type on a quotation is added automatically when you save it.</p>
+        Add items here yourself with <b>＋ Add an item</b> — typing on a quotation no longer adds to this list.</p>
       <div id="catList" class="cat-list"></div>
       <div class="grid-tools">
         <button class="chip" data-act="cat-add">＋ Add an item</button>
