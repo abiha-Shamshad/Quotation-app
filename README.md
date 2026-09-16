@@ -25,18 +25,24 @@ to system fonts and still prints correctly.)
 ## Using it
 
 **One screen at a time.** You fill in the form; the quotation itself is not on screen while
-you work. It appears once you have added everything and press **Save** or **PDF / Print**, and
-`← Edit` (or `Esc`) takes you back to the form.
+you work. **Preview** shows it, **Save as PDF** (from there) or `← Edit` (or `Esc`) takes you
+back to the form.
 
-**Toolbar** — three buttons and a `⋯` menu, nothing else:
+**Toolbar** — two screen-specific buttons, plus three that are always there:
 
-- **Saved** — every saved quotation, searchable by Ref. No., client or date; Open / Copy / Delete
-- **Save** — stores the quotation's *data* (not a picture) and shows you the finished document
-- **PDF / Print** — shows the document and opens the print dialog; pick *Save as PDF* for a file,
-  or a printer to print
-- **⋯** — New quotation · Duplicate this one · My item list (and *Saved* on a phone)
+- On the form: **Save** — stores the quotation's *data* (not a picture), no screen change · and
+  **Preview** — shows you the finished document without saving
+- On the document: **← Edit** — back to the form · and **Save as PDF** — saves the quotation
+  (same as Save) and opens the print dialog; pick *Save as PDF* for a file, or a printer to print.
+  Every quotation this button produces a PDF for ends up in **Saved quotations**.
+- Always there: **New** — a blank quotation · **Saved** — every saved quotation, searchable by
+  Ref. No., client or date, with Open / Copy / Delete · **My list** — the item shortcuts behind
+  **Pick an item** on each line
 
-Keyboard: `Ctrl+S` save, `Ctrl+P` print, `Esc` back to the form.
+If all five don't fit on one line on your phone, the button row scrolls sideways rather than
+wrapping.
+
+Keyboard: `Ctrl+S` save, `Ctrl+P` save as PDF, `Esc` back to the form.
 
 **Details** — one plain field per cell of the top table: Ref. No., Date, Telephone,
 Client Mobile, Location, Contractor and Client. Each caption is that cell's own label, so

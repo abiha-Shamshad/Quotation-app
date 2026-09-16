@@ -55,13 +55,16 @@ button{font-family:inherit}
 }
 
 /* ─────────────── app bar ─────────────── */
+/* Two bands: the brand + the current screen's own two actions (Save/Preview,
+   or ← Edit/Save as PDF) up top, then New/Saved/My list — always the same
+   regardless of screen — in their own strip below, set off by a rule. */
 .appbar{
   position:sticky;top:0;z-index:40;
-  display:flex;align-items:center;gap:12px;
+  display:flex;flex-direction:column;
   padding:calc(9px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
-  height:calc(58px + env(safe-area-inset-top));
   background:var(--navy);color:#fff;
 }
+.appbar-top{display:flex;align-items:center;gap:12px}
 .brandmark{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
 .bm-badge{
   width:36px;height:36px;flex:none;border-radius:9px;
@@ -71,7 +74,8 @@ button{font-family:inherit}
 .bm-badge:active{transform:translateY(1px)}
 .bm-badge img{width:100%;height:100%;object-fit:contain;display:block}
 .bm-text{display:flex;flex-direction:column;line-height:1.2;min-width:0}
-.bm-text b{font-size:15px;font-weight:600}
+.bm-text b{font-size:15px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .bm-text i{font-size:11.5px;font-style:normal;color:#b9c6e6;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
@@ -90,33 +94,27 @@ button{font-family:inherit}
 .btn-navy:hover{background:var(--navy-2)}
 .btn.block{width:100%;justify-content:center;padding:14px;font-size:14px}
 
-/* overflow menu */
-.menu{position:relative}
-.menu>summary{
-  list-style:none;cursor:pointer;
-  width:38px;height:38px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.34);
-  display:grid;place-items:center;font-size:18px;line-height:1;
+/* the always-there trio, laid out as three even columns (a small table row)
+   rather than left-packed pills, so New/Saved/My list read as equal, parallel
+   choices; pill-shaped corners still set them apart from the pair above. */
+.quick-actions{
+  display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.16);
 }
-.menu>summary::-webkit-details-marker{display:none}
-.menu>summary:hover{background:rgba(255,255,255,.18)}
-.menu-list{
-  position:absolute;right:0;top:46px;z-index:50;
-  background:#fff;border-radius:12px;padding:6px;min-width:196px;
-  box-shadow:0 12px 34px rgba(12,20,45,.26);
+.qbtn{
+  border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.08);
+  color:#fff;font-size:12.5px;font-weight:600;
+  padding:8px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  text-align:center;
 }
-.menu-list button{
-  display:block;width:100%;text-align:left;
-  background:none;border:0;cursor:pointer;
-  padding:11px 12px;border-radius:8px;
-  font-size:13.5px;color:var(--ink);
-}
-.menu-list button:hover{background:#eef2fa}
+.qbtn:hover{background:rgba(255,255,255,.18)}
+.qbtn:active{transform:translateY(1px)}
 
 /* ─────────────── workspace ─────────────── */
 /* One screen at a time: the form while you fill it in, the finished
    quotation once you Save or Print. */
-.workspace{display:block;min-height:calc(100vh - 58px - env(safe-area-inset-top))}
+.workspace{display:block;min-height:calc(100vh - 104px - env(safe-area-inset-top))}
 .editor{
   padding:18px max(16px, env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   display:flex;flex-direction:column;gap:14px;
@@ -127,7 +125,7 @@ button{font-family:inherit}
   display:none;
   padding:18px max(14px, env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   background:radial-gradient(circle at 50% 0,#e3e8f2,#eef1f6 60%);
-  min-height:calc(100vh - 58px - env(safe-area-inset-top));
+  min-height:calc(100vh - 104px - env(safe-area-inset-top));
 }
 body.show-doc .editor{display:none}
 body.show-doc .preview{display:block}
@@ -136,6 +134,10 @@ body.show-doc .preview{display:block}
 .doc-only{display:none}
 body.show-doc .edit-only{display:none}
 body.show-doc .doc-only{display:inline-flex}
+/* New/Saved/My list are form actions — on the document screen the page
+   itself is the focus, so this strip (and the divider under the top row)
+   steps aside entirely rather than sitting above the preview. */
+body.show-doc .quick-actions{display:none}
 
 /* ─────────────── editor cards ─────────────── */
 .card{
@@ -252,7 +254,8 @@ body.show-doc .doc-only{display:inline-flex}
 .calc-readout .grand{background:var(--navy)}
 .calc-readout .grand em{color:#c5d0ea}
 .calc-readout .grand b{color:#fff;font-size:17px}
-.editor-foot{padding-bottom:22px}
+.editor-foot{display:flex;gap:10px;padding-bottom:22px}
+.editor-foot .btn.block{width:auto;flex:1}
 
 /* ─────────────── preview ─────────────── */
 
@@ -480,19 +483,15 @@ table.items tr.filler td{color:transparent}
 .f-txt.ar{font-family:var(--arabic);direction:rtl;font-size:13px}
 
 /* ══════════════════ responsive ══════════════════ */
-.only-mobile,.menu-list button.only-mobile{display:none}
-
 @media (max-width:500px){
   .editor{padding:12px max(12px, env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))}
   .preview{padding:14px max(8px, env(safe-area-inset-right)) calc(70px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left))}
 }
 @media (max-width:500px){
-  /* the bar keeps only the two everyday actions — the rest moves into ⋯ */
-  .appbar{padding:calc(9px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 9px max(10px, env(safe-area-inset-left));gap:8px}
+  .appbar{padding:calc(9px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 9px max(10px, env(safe-area-inset-left))}
   .bm-text b{font-size:14px}
   .btn{padding:9px 12px;font-size:12.5px}
-  [data-act="history"].btn{display:none}
-  .only-mobile,.menu-list button.only-mobile{display:block}
+  .qbtn{padding:7px 8px;font-size:12px}
   .adv-row{grid-template-columns:1fr 1fr;}
   .adv-row .adv-key{grid-column:1/-1}
 }

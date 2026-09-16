@@ -18,29 +18,27 @@
 
 <!-- ══════════════════ APP BAR ══════════════════ -->
 <header class="appbar no-print">
-  <div class="brandmark">
-    <button class="bm-badge" data-act="edit" title="Back to the form"><img src="assets/logo.png" alt="JB"></button>
-    <span class="bm-text">
-      <b>Quotation</b>
-      <i id="docStatus">New quotation</i>
-    </span>
+  <div class="appbar-top">
+    <div class="brandmark">
+      <button class="bm-badge" data-act="edit" title="Back to the form"><img src="assets/logo.png" alt="JB"></button>
+      <span class="bm-text">
+        <b>JB Gulf Quotation</b>
+        <i id="docStatus">New quotation</i>
+      </span>
+    </div>
+
+    <div class="bar-actions">
+      <button class="btn edit-only" data-act="save" title="Save this quotation (Ctrl+S)">Save</button>
+      <button class="btn btn-gold edit-only" data-act="preview" title="Preview the finished quotation">Preview</button>
+      <button class="btn doc-only" data-act="edit" title="Back to the form (Esc)">← Edit</button>
+      <button class="btn btn-gold doc-only" data-act="save-pdf" title="Save and export as PDF or print (Ctrl+P)">Save as PDF</button>
+    </div>
   </div>
 
-  <div class="bar-actions">
-    <button class="btn edit-only" data-act="history" title="Saved quotations">Saved</button>
-    <button class="btn edit-only" data-act="save" title="Save and see the quotation (Ctrl+S)">Save</button>
-    <button class="btn doc-only" data-act="edit" title="Back to the form (Esc)">← Edit</button>
-    <button class="btn btn-gold" data-act="pdf" title="See it, then save as PDF or print (Ctrl+P)">PDF / Print</button>
-
-    <details class="menu">
-      <summary title="More">⋯</summary>
-      <div class="menu-list">
-        <button class="only-mobile" data-act="history">Saved quotations</button>
-        <button data-act="new">New quotation</button>
-        <button data-act="duplicate">Duplicate this one</button>
-        <button data-act="items">My item list</button>
-      </div>
-    </details>
+  <div class="quick-actions">
+    <button class="qbtn" data-act="new" title="Start a blank quotation">New</button>
+    <button class="qbtn" data-act="history" title="Saved quotations">Saved</button>
+    <button class="qbtn" data-act="items" title="My item list">My list</button>
   </div>
 </header>
 
@@ -86,7 +84,8 @@
     </details>
 
     <div class="editor-foot">
-      <button class="btn btn-navy block" data-act="save">Save &amp; view quotation</button>
+      <button class="btn btn-navy block" data-act="save">Save</button>
+      <button class="btn btn-gold block" data-act="preview">Preview</button>
     </div>
   </section>
 

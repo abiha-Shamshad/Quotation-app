@@ -130,13 +130,16 @@ const BASE_COLS = () => ([
 ]);
 
 const L = (ar, en) => ({ ar, en });
-const V = (v, align, size) => ({ v: v || '', align: align || 'left', size: size || 'lg' });
+/* kind marks a value cell for the editor to restrict/typed as — 'date' gets a
+   real date picker, 'tel' gets digits-only input. It travels with the cell
+   (not the label), so relabelling a field under Advanced never loses it. */
+const V = (v, align, size, kind) => ({ v: v || '', align: align || 'left', size: size || 'lg', kind: kind || '' });
 
 function blankInfo() {
   return [
-    [V(''), L('الرقم', 'Ref. No.'),      V('', 'left', 'md'),  L('التاريخ', 'Date')],
-    [V(''), L('تليفون', 'Telephone'),    V('', 'center', 'sm'), L('الطرف الأول', 'Contractor')],
-    [V(''), L('جوال العميل', 'Client Mobile'), V('', 'center', 'sm'), L('الطرف الثاني', 'Client')],
+    [V(''), L('الرقم', 'Ref. No.'),      V('', 'left', 'md', 'date'), L('التاريخ', 'Date')],
+    [V('', 'left', 'lg', 'tel'), L('تليفون', 'Telephone'),    V('', 'center', 'sm'), L('الطرف الأول', 'Contractor')],
+    [V('', 'left', 'lg', 'tel'), L('جوال العميل', 'Client Mobile'), V('', 'center', 'sm'), L('الطرف الثاني', 'Client')],
     [V(''), L('', ''),                    V('', 'center', 'md'), L('الموقع', 'Location')]
   ];
 }
@@ -162,10 +165,10 @@ function newQuote() {
 function sampleQuote() {
   const q = newQuote();
   q.info[0][0] = V('CONT-812-2026', 'left', 'lg');
-  q.info[0][2] = V('August 2026', 'left', 'md');
-  q.info[1][0] = V('0592860812', 'left', 'lg');
+  q.info[0][2] = V('2026-08-01', 'left', 'md', 'date');
+  q.info[1][0] = V('0592860812', 'left', 'lg', 'tel');
   q.info[1][2] = V('مؤسسة حدود الخليج للمقاولات\nGulf Borders For Contracting', 'center', 'sm');
-  q.info[2][0] = V('0550710254', 'left', 'lg');
+  q.info[2][0] = V('0550710254', 'left', 'lg', 'tel');
   q.info[2][2] = V('شركة خالد مقبل التطوير العقاري\nKhaidi M. Al-Tatweer Real Estate Co.', 'center', 'sm');
   q.info[3][2] = V('Compound#2', 'center', 'md');
   const data = [
@@ -433,6 +436,14 @@ function infoPairs() {
   return out.filter(f => f.cell.size !== 'sm').concat(out.filter(f => f.cell.size === 'sm'));
 }
 
+/* 'date' gets a native picker (only valid calendar dates can be entered);
+   'tel' gets a digits-only field, filtered live in the input handler below. */
+function kindAttrs(kind) {
+  if (kind === 'date') return ' type="date"';
+  if (kind === 'tel')  return ' type="tel" inputmode="tel" maxlength="20" data-restrict="tel"';
+  return '';
+}
+
 function renderInfoEditor() {
   $('#infoEditor').innerHTML = '<div class="field-grid">' + infoPairs().map(f => {
     const multi = f.cell.size === 'sm';           /* the two name cells */
@@ -441,7 +452,7 @@ function renderInfoEditor() {
     return '<label class="field' + (multi ? ' wide' : '') + '"><span>' + esc(f.cap) + '</span>' +
       (multi
         ? '<textarea rows="2"' + at + rtl + '>' + esc(f.cell.v) + '</textarea>'
-        : '<input' + at + rtl + ' value="' + esc(f.cell.v) + '">') +
+        : '<input' + at + kindAttrs(f.cell.kind) + rtl + ' value="' + esc(f.cell.v) + '">') +
       '</label>';
   }).join('') + '</div>';
 }
@@ -514,6 +525,15 @@ $('#editor').addEventListener('change', e => {
 function renderAdvanced() {
   const q = state.quote;
 
+  const title = '<h3 class="adv-h">Document title</h3>' +
+    '<p class="note">The heading printed at the top of the quotation.</p>' +
+    '<div class="adv-rows">' +
+      '<div class="adv-row"><span class="adv-key">Title</span>' +
+        '<input class="mini" dir="rtl" data-title="tAr" value="' + esc(q.tAr) + '" placeholder="عربي">' +
+        '<input class="mini" data-title="tEn" value="' + esc(q.tEn) + '" placeholder="English">' +
+      '</div>' +
+    '</div>';
+
   const labels = '<h3 class="adv-h">Table labels</h3>' +
     '<p class="note">Relabel a cell in the top table for a different kind of job.</p>' +
     '<div class="adv-rows">' + q.info.map((r, ri) =>
@@ -537,7 +557,7 @@ function renderAdvanced() {
       '<button class="chip" data-act="del-col">– Column</button>' +
     '</div>';
 
-  $('#advEditor').innerHTML = labels + cols;
+  $('#advEditor').innerHTML = title + labels + cols;
 }
 
 function renderEditor() {
@@ -562,6 +582,17 @@ function touched(structural) {
 $('#editor').addEventListener('input', e => {
   const el = e.target, q = state.quote;
 
+  /* digits-only, live — letters/symbols never make it into a phone field,
+     rather than being merely flagged after the fact */
+  if (el.dataset.restrict === 'tel') {
+    const cleaned = el.value.replace(/[^0-9+\-\s()]/g, '');
+    if (cleaned !== el.value) el.value = cleaned;
+  }
+
+  if (el.dataset.title) {
+    q[el.dataset.title] = el.value;
+    return touched();
+  }
   if (el.dataset.info) {
     const [ri, ci, field] = el.dataset.info.split(',');
     q.info[+ri][+ci][field] = el.value;
@@ -679,12 +710,14 @@ function saveQuote() {
   if (save(K_QUOTES, list)) {
     state.savedId = q.id;
     save(K_CURRENT, state.quote);
-    $('#docStatus').textContent = quoteRef(q) + ' · saved';
+    $('#docStatus').textContent = 'Saved';
+    /* This only stores the quotation's data in the app (and Save as PDF
+       hasn't even opened the print dialog yet at this point) — nothing has
+       reached the phone's storage or gallery, so an in-app toast is the
+       right signal here. The system notification belongs to the moment a
+       PDF is actually written to disk, which happens later, outside this
+       app's control, in Android's own print/save flow. */
     toast('Quotation saved');
-    if (window.AndroidNotify) {
-      try { AndroidNotify.notify('Quotation saved', quoteRef(q) + ' has been saved.'); }
-      catch (e) { /* notification is a nice-to-have, never a blocker */ }
-    }
   }
 }
 /* ═══════════════════════════════════════════════════════════
@@ -791,7 +824,7 @@ function loadQuote(q) {
   if (!state.quote.cols) state.quote.cols = BASE_COLS();
   state.savedId = q.id;
   save(K_CURRENT, q);
-  $('#docStatus').textContent = quoteRef(q);
+  $('#docStatus').textContent = 'Loaded';
   renderEditor();
   if (docShown()) renderDoc(); else { showForm(); updateReadouts(); }
 }
@@ -841,21 +874,23 @@ document.addEventListener('click', e => {
     $('#docStatus').textContent = 'New quotation';
     toast('Blank quotation ready');
   }
-  else if (act === 'save')      { saveQuote(); showDoc(); }
+  else if (act === 'save')      saveQuote();
+  else if (act === 'preview')   showDoc();
   else if (act === 'edit')      showForm();
   else if (act === 'history')   openHistory();
   else if (act === 'items')     openItems();
-  else if (act === 'duplicate') {
-    const c = clone(state.quote);
-    c.id = uid(); c.created = c.updated = Date.now();
-    loadQuote(c);
-    toast('Duplicated — edit and save as a new quotation');
-  }
-  else if (act === 'print' || act === 'pdf') doPrint();
+  /* Save as PDF always saves first — every PDF this app produces lands in
+     Saved quotations, not just the ones you explicitly hit Save on. */
+  else if (act === 'save-pdf' || act === 'print' || act === 'pdf') { saveQuote(); doPrint(); }
 });
-/* editor's own save button */
+/* editor's own Save / Preview buttons (top bar's edit-only pair is handled
+   above, but those live outside #editor — this is the matching pair at the
+   foot of the form, which the listener above deliberately ignores). */
 $('#editor').addEventListener('click', e => {
-  if (e.target.closest('[data-act="save"]')) { saveQuote(); showDoc(); }
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  if (b.dataset.act === 'save')         saveQuote();
+  else if (b.dataset.act === 'preview') showDoc();
 });
 
 /* Printing straight from Chrome's own menu (or Ctrl+P caught by the browser
@@ -901,43 +936,34 @@ if (window.ResizeObserver) {
 }
 window.addEventListener('resize', () => { if (autoFit && docShown()) applyZoom(fitZoom(), true); });
 
-/* the ⋯ menu closes when you pick something or tap away */
-document.addEventListener('click', e => {
-  const inMenu = e.target.closest('.menu');
-  $$('details.menu[open]').forEach(m => {
-    if (m !== inMenu || e.target.closest('.menu-list')) m.open = false;
-  });
-});
-
 /* close overlays on backdrop tap */
 $$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.hidden = true; }));
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    const wasOpen = $$('.overlay:not([hidden])').length || $$('details.menu[open]').length;
+    const wasOpen = $$('.overlay:not([hidden])').length;
     $$('.overlay').forEach(o => o.hidden = true);
-    $$('details.menu[open]').forEach(m => { m.open = false; });
     if (!wasOpen && docShown()) showForm();
   }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveQuote(); showDoc(); }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); doPrint(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveQuote(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); saveQuote(); doPrint(); }
 });
 
 /* ───────────── boot ───────────── */
 renderEditor();
 updateReadouts();
-$('#docStatus').textContent = quoteRef(state.quote);
+$('#docStatus').textContent = state.savedId ? 'Saved' : 'New quotation';
 /* webfonts change metrics — re-measure once they land */
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
   if (docShown()) { fitPage(); applyZoom(autoFit ? fitZoom() : zoom, autoFit); }
 });
 
-/* boot splash — shown ~3.5s, then fades out over its own .4s transition */
+/* boot splash — shown ~2s, then fades out over its own .4s transition */
 setTimeout(() => {
   const splash = $('#bootSplash');
   if (!splash) return;
   splash.classList.add('boot-exit');
   setTimeout(() => splash.remove(), 450);
-}, 3500);
+}, 2000);
 
 /* session timer — the app reloads itself after 7 minutes */
 setTimeout(() => { location.reload(); }, 7 * 60 * 1000);
