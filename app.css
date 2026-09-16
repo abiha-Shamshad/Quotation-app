@@ -289,6 +289,14 @@ body.show-doc .quick-actions{display:none}
 .sheet-foot{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line);background:#f7f9fc}
 .sheet-foot .btn{border-color:var(--line);background:#fff;color:var(--navy)}
 .sheet-foot .btn-navy{background:var(--navy);color:#fff;border-color:var(--navy)}
+.sheet-foot .btn-danger{background:#c0392b;border-color:#c0392b;color:#fff;font-weight:700}
+.sheet-foot .btn-danger:hover{background:#a8301f}
+
+/* Always centered, never a bottom sheet — a short yes/no question reads
+   oddly pinned to the bottom edge the way the bigger panels are. */
+.confirm-overlay{align-items:center;padding:24px;z-index:70}
+.confirm-sheet{max-width:360px;border-radius:18px}
+.confirm-sheet .sheet-body{padding:22px 20px 6px;font-size:14.5px;line-height:1.5;color:var(--ink)}
 
 /* ─────────────── my item list ─────────────── */
 .cat-list{display:flex;flex-direction:column;gap:9px}

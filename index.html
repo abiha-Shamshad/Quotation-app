@@ -138,6 +138,21 @@
   </div>
 </div>
 
+<!-- ══════════════════ CONFIRM DIALOG ══════════════════ -->
+<!-- Replaces the browser's own confirm() — that popup carries the browser's
+     chrome (an "attacker could be pretending…" line, the page's raw file://
+     URL, unstyled OS buttons), not this app's. Same navy/gold sheet look as
+     every other panel, just centered and compact instead of a full sheet. -->
+<div class="overlay no-print confirm-overlay" id="confirmPanel" hidden>
+  <div class="sheet confirm-sheet">
+    <div class="sheet-body" id="confirmMsg"></div>
+    <footer class="sheet-foot">
+      <button class="btn" data-confirm="cancel">Cancel</button>
+      <button class="btn btn-danger" data-confirm="ok">Delete</button>
+    </footer>
+  </div>
+</div>
+
 <div class="toast no-print" id="toast" hidden></div>
 
 <script src="app.js"></script>

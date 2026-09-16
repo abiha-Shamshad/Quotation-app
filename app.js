@@ -36,6 +36,25 @@ function toast(msg) {
   toastT = setTimeout(() => { t.hidden = true; }, 2400);
 }
 
+/* In-app replacement for window.confirm() — the browser's own version shows
+   its raw file:// URL and plain OS buttons, nothing like the rest of this
+   app. Resolves true on Delete, false on Cancel, backdrop tap, or Esc. */
+let confirmResolve = null;
+function askConfirm(message) {
+  const panel = $('#confirmPanel');
+  $('#confirmMsg').textContent = message;
+  panel.hidden = false;
+  return new Promise(resolve => {
+    confirmResolve = v => { panel.hidden = true; confirmResolve = null; resolve(v); };
+  });
+}
+$('#confirmPanel').addEventListener('click', e => {
+  if (!confirmResolve) return;
+  const b = e.target.closest('[data-confirm]');
+  if (b) return confirmResolve(b.dataset.confirm === 'ok');
+  if (e.target === $('#confirmPanel')) return confirmResolve(false);   /* backdrop tap */
+});
+
 /* ───────────── company artwork ─────────────
    The company mark and rubber stamp, lifted from the printed template and kept
    as transparent PNGs in assets/ so screen and print show the same art. */
@@ -636,14 +655,14 @@ $('#editor').addEventListener('input', e => {
   }
 });
 
-$('#editor').addEventListener('click', e => {
+$('#editor').addEventListener('click', async e => {
   const b = e.target.closest('button');
   if (!b) return;
   const q = state.quote;
 
   if (b.dataset.delrow != null && b.dataset.delrow !== '') {
     if (q.rows.length <= 1) return toast('At least one line item is required.');
-    if (!confirm('Delete this item? This can\'t be undone.')) return;
+    if (!await askConfirm('Delete this item? This can\'t be undone.')) return;
     q.rows.splice(+b.dataset.delrow, 1);
     renumber();
     return touched(true);
@@ -676,7 +695,7 @@ $('#editor').addEventListener('click', e => {
   if (act === 'del-col') {
     for (let i = q.cols.length - 1; i >= 0; i--) {
       if (!q.cols[i].fixed && q.cols[i].key !== 'desc') {
-        if (!confirm('Remove this column? Its data will be cleared from every row.')) return;
+        if (!await askConfirm('Remove this column? Its data will be cleared from every row.')) return;
         const key = q.cols[i].key;
         q.cols.splice(i, 1);
         q.rows.forEach(r => { delete r[key]; });
@@ -799,7 +818,7 @@ function renderHistory(term) {
   }).join('') : '<div class="empty">No saved quotations yet.<br>Fill the form and tap <b>Save</b>.</div>';
 }
 $('#histSearch').addEventListener('input', e => renderHistory(e.target.value));
-$('#historyPanel').addEventListener('click', e => {
+$('#historyPanel').addEventListener('click', async e => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.hasAttribute('data-close')) { $('#historyPanel').hidden = true; return; }
@@ -813,7 +832,7 @@ $('#historyPanel').addEventListener('click', e => {
              loadQuote(c); $('#historyPanel').hidden = true; toast('Copied — save it when ready'); }
   } else if (b.dataset.del) {
     const q = list.find(x => x.id === b.dataset.del);
-    if (!confirm('Delete ' + (q ? quoteRef(q) : 'this quotation') + '? This can\'t be undone.')) return;
+    if (!await askConfirm('Delete ' + (q ? quoteRef(q) : 'this quotation') + '? This can\'t be undone.')) return;
     save(K_QUOTES, list.filter(x => x.id !== b.dataset.del));
     renderHistory($('#histSearch').value);
     toast('Deleted');
@@ -949,6 +968,7 @@ window.addEventListener('resize', () => { if (autoFit && docShown()) applyZoom(f
 $$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.hidden = true; }));
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (confirmResolve) return confirmResolve(false);
     const wasOpen = $$('.overlay:not([hidden])').length;
     $$('.overlay').forEach(o => o.hidden = true);
     if (!wasOpen && docShown()) showForm();
