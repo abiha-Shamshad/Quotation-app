@@ -903,7 +903,16 @@ window.addEventListener('beforeprint', () => {
 
 function doPrint() {
   toast('Choose "Save as PDF" in the dialog for a PDF, or a printer to print');
-  showDoc(() => window.print());
+  /* A stock Android WebView has no print pipeline of its own — window.print()
+     from here is a silent no-op there. When the app shell injects an
+     AndroidPrint bridge, use it; otherwise (a real browser) window.print()
+     already works on its own. */
+  showDoc(() => {
+    if (window.AndroidPrint) {
+      try { AndroidPrint.print(); return; } catch (e) { /* fall through to window.print() */ }
+    }
+    window.print();
+  });
 }
 
 /* zoom — one toggle: fit to the pane, or 100% */
