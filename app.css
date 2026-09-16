@@ -496,7 +496,10 @@ table.items tr.filler td{color:transparent}
   .preview{padding:14px max(8px, env(safe-area-inset-right)) calc(70px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left))}
 }
 @media (max-width:500px){
-  .appbar{padding:calc(9px + env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 9px max(10px, env(safe-area-inset-left))}
+  /* Horizontal padding only — this must NOT reset padding-top back down,
+     or it silently undoes the 40px top clearance above on exactly the
+     phone widths that setting exists for. */
+  .appbar{padding-left:max(10px, env(safe-area-inset-left));padding-right:max(10px, env(safe-area-inset-right))}
   .bm-text b{font-size:14px}
   .btn{padding:9px 12px;font-size:12.5px}
   .qbtn{padding:7px 8px;font-size:12px}
