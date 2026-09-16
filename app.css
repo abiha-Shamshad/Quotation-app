@@ -61,7 +61,12 @@ button{font-family:inherit}
 .appbar{
   position:sticky;top:0;z-index:40;
   display:flex;flex-direction:column;
-  padding:calc(9px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
+  /* 24px (not 9px) of its own baseline top padding, on top of whatever
+     env(safe-area-inset-top) adds — a phone's rounded screen corners and
+     status bar sit right where the brand mark would otherwise start, so
+     this guarantees real clearance even on a browser or device that
+     reports no safe-area inset at all. */
+  padding:calc(24px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 9px max(14px, env(safe-area-inset-left));
   background:var(--navy);color:#fff;
 }
 .appbar-top{display:flex;align-items:center;gap:12px}
